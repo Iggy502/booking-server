@@ -1,0 +1,4 @@
+/.idea/
+/.env
+/package-lock.json
+/wdev-backend.iml
