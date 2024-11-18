@@ -2,7 +2,7 @@
 import mongoose from 'mongoose';
 import bcrypt from 'bcryptjs';
 //Automatically scans for index file if given path is a folder
-import {IUserDocument, IUserModel, IUserResponse} from './interfaces';
+import {IUserDocument, IUserModel} from './interfaces';
 
 const userSchema = new mongoose.Schema<IUserDocument>(
     {

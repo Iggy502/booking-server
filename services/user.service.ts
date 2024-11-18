@@ -1,6 +1,6 @@
 // Objective: User service to handle user operations
 import {User} from '../models/user.model';
-import {IUserDocument, IUserResponse, IUserCreate} from '../models/interfaces';
+import {IUserResponse, IUserCreate} from '../models/interfaces';
 
 
 export class UserService {
