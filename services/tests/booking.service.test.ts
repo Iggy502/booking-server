@@ -64,6 +64,23 @@ describe('BookingService', () => {
         });
     });
 
+    it('should throw an error if the property is not found', async () => {
+        const bookingData: IBookingCreate = {
+            property: mockPropertyId,
+            guest: mockUserId,
+            checkIn: new Date(),
+            checkOut: new Date(),
+            numberOfGuests: 2,
+        };
+
+        (Property.findById as jest.Mock).mockResolvedValue(null);
+
+        await expect(bookingService.createBooking(mockUserId.toString(), bookingData))
+            .rejects
+            .toThrow('Property not found!');
+
+        expect(Property.findById).toHaveBeenCalledWith(mockPropertyId);
+    });
 
     it('should get a booking by id', async () => {
         (Booking.findById as jest.Mock).mockResolvedValue({
