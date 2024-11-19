@@ -77,7 +77,7 @@ describe('BookingService', () => {
 
         await expect(bookingService.createBooking(mockUserId.toString(), bookingData))
             .rejects
-            .toThrow('Property not found!');
+            .toThrow('Property not found');
 
         expect(Property.findById).toHaveBeenCalledWith(mockPropertyId);
     });
