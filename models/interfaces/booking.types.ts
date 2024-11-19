@@ -22,6 +22,9 @@ export interface IBookingDocument extends IBookingBase, Document {
 
 export interface IBookingCreate extends Omit<IBookingBase, 'createdAt' | 'updatedAt' | 'totalPrice' | 'status'> {}
 
+export interface IBookingUpdate extends Partial<Omit<IBookingBase, 'createdAt' | 'updatedAt' | 'property' | 'guest'>> {}
+
+
 export interface IBookingResponse extends IBookingBase {
     id: string;
 }

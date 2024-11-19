@@ -1,11 +1,8 @@
 // src/models/booking.model.ts
 import mongoose, {Model} from 'mongoose';
-import {IBookingDocument, IBookingCreate, IBookingResponse} from './interfaces';
+import {IBookingDocument, IBookingCreate, IBookingResponse, IBookingModel} from './interfaces';
 import {Property} from './property.model';
 
-interface IBookingModel extends Model<IBookingDocument> {
-    createBooking(userId: string, bookingData: IBookingCreate): Promise<IBookingResponse>;
-}
 
 const bookingSchema = new mongoose.Schema<IBookingDocument>(
     {
@@ -78,7 +75,6 @@ bookingSchema.pre('save', async function (next) {
     next();
 });
 
-
 // Instance methods
 bookingSchema.methods.calculateDuration = function (): number {
     return this.calculateDuration(this.checkIn, this.checkOut);
@@ -87,11 +83,9 @@ bookingSchema.methods.isPast = function (): boolean {
     return this.checkOut < new Date();
 };
 
-
 const calculateDuration = (checkIn: Date, checkOut: Date): number => {
     return (checkOut.getTime() - checkIn.getTime()) / (1000 * 60 * 60 * 24);
 }
-
 
 // Static method to create booking
 bookingSchema.statics.createBooking = async function (
