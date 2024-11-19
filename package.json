@@ -4,6 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "start": "tsc && node dist/server/server.js",
     "test": "jest --testPathPattern=/tests/"
   },
   "keywords": [],
