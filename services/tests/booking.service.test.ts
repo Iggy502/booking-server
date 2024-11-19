@@ -56,9 +56,9 @@ describe('BookingService', () => {
         const result = await bookingService.createBooking(mockUserId.toString(), bookingData);
         expect(result).toEqual(mockBooking);
         expect(Property.findById).toHaveBeenCalledWith(mockPropertyId);
-        console.log(mockProperty)
-        expect(Booking.create).toHaveBeenCalledWith({...bookingData,
-            guest: mockUserId,
+        expect(Booking.create).toHaveBeenCalledWith({
+            ...bookingData,
+            guest: mockUserId.toString(),
             totalPrice: mockProperty.pricePerNight * ((new Date(bookingData.checkOut).getTime() - new Date(bookingData.checkIn).getTime()) / (1000 * 60 * 60 * 24)),
             status: 'pending'
         });
