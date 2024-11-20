@@ -1,3 +1,5 @@
+import 'reflect-metadata';
+import {container} from 'tsyringe';
 import {UserService} from '../user.service';
 import {User} from '../../models/user.model';
 import {IUserCreate, IUserResponse} from '../../models/interfaces';
@@ -16,6 +18,14 @@ describe('UserService', () => {
         updatedAt: new Date(),
     };
 
+
+    let userService: UserService;
+
+
+    beforeAll(() => {
+        userService = container.resolve(UserService);
+    });
+
     afterEach(() => {
         jest.clearAllMocks();
     });
@@ -33,7 +43,7 @@ describe('UserService', () => {
             toObject: () => mockUser,
         });
 
-        const result = await UserService.createUser(userData);
+        const result = await userService.createUser(userData);
         expect(result).toEqual(mockUser);
         expect(User.create).toHaveBeenCalledWith(userData);
 
@@ -45,7 +55,7 @@ describe('UserService', () => {
             toObject: () => mockUser,
         });
 
-        const result = await UserService.getUserById(mockUserId);
+        const result = await userService.getUserById(mockUserId);
         expect(result).toEqual(mockUser);
         expect(User.findById).toHaveBeenCalledWith(mockUserId);
     });
@@ -59,7 +69,7 @@ describe('UserService', () => {
             toObject: () => ({...mockUser, ...updateData}),
         });
 
-        const result = await UserService.updateUser(mockUserId, updateData);
+        const result = await userService.updateUser(mockUserId, updateData);
         expect(result).toEqual({...mockUser, ...updateData});
         expect(User.findByIdAndUpdate).toHaveBeenCalledWith(mockUserId, updateData, {new: true});
     });
@@ -70,7 +80,7 @@ describe('UserService', () => {
             toObject: () => mockUser,
         });
 
-        const result = await UserService.deleteUser(mockUserId);
+        const result = await userService.deleteUser(mockUserId);
         expect(result).toEqual(mockUser);
         expect(User.findByIdAndDelete).toHaveBeenCalledWith(mockUserId);
     });

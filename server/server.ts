@@ -1,15 +1,15 @@
+import 'reflect-metadata';
 import express from 'express';
-import { json } from 'body-parser';
-import { UserController } from '../controllers/user.controller';
+import {json} from 'body-parser';
+import {container} from 'tsyringe';
+import {UserController} from '../controllers/user.controller';
 
 const app = express();
 app.use(json());
 
 // Define routes
-app.post('/users', UserController.createUser);
-app.get('/users/:id', UserController.getUserById);
-app.put('/users/:id', UserController.updateUser);
-app.delete('/users/:id', UserController.deleteUser);
+const userController = container.resolve(UserController);
+app.use('/users', userController.routes());
 
 //Hello World
 app.get('/', (req, res) => {

@@ -2,31 +2,50 @@
 import {Request, Response} from 'express';
 import {UserService} from '../services/user.service';
 import {IUserCreate, IUserResponse} from '../models/interfaces';
+import {Router} from 'express';
+import {autoInjectable} from "tsyringe";
 
+@autoInjectable()
 export class UserController {
-    static async createUser(req: Request, res: Response) {
+    userService: UserService;
+    router: Router;
+
+    constructor(userService: UserService) {
+        this.userService = userService;
+        this.router = Router();
+    }
+
+    async createUser(req: Request, res: Response) {
         const userData: IUserCreate = req.body;
-        const user = await UserService.createUser(userData);
+        const user = await this.userService.createUser(userData);
         res.status(201).json(user);
     }
 
-    static async getUserById(req: Request, res: Response) {
+    async getUserById(req: Request, res: Response) {
         const userId = req.params.id;
-        const user = await UserService.getUserById(userId);
+        const user = await this.userService.getUserById(userId);
         res.json(user);
     }
 
-    static async updateUser(req: Request, res: Response) {
+    async updateUser(req: Request, res: Response) {
         const userId = req.params.id;
         const userData: Partial<IUserCreate> = req.body;
-        const user = await UserService.updateUser(userId, userData);
+        const user = await this.userService.updateUser(userId, userData);
         res.json(user);
     }
 
-    static async deleteUser(req: Request, res: Response) {
+    async deleteUser(req: Request, res: Response) {
         const userId = req.params.id;
-        const user = await UserService.deleteUser(userId);
+        const user = await this.userService.deleteUser(userId);
         res.json(user);
+    }
+
+    routes() {
+        this.router.post('/', this.createUser);
+        this.router.get('/:id', this.getUserById);
+        this.router.put('/:id', this.updateUser);
+        this.router.delete('/:id', this.deleteUser);
+        return this.router;
     }
 
 }

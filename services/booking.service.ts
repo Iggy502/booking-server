@@ -3,7 +3,9 @@
 import {Booking} from '../models/booking.model';
 import {IBookingCreate, IBookingResponse, IBookingUpdate} from '../models/interfaces';
 import {Property} from "../models/property.model";
+import {injectable} from "tsyringe";
 
+@injectable()
 export class BookingService {
 
     async createBooking(userId: string, bookingData: IBookingCreate): Promise<IBookingResponse> {

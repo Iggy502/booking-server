@@ -1,8 +1,10 @@
+import 'reflect-metadata';
 import {BookingService} from '../booking.service';
 import {Booking} from '../../models/booking.model';
 import {IBookingCreate, IBookingResponse, IBookingUpdate} from '../../models/interfaces';
 import mongoose from 'mongoose';
 import {Property} from "../../models/property.model";
+import {container} from "tsyringe";
 
 jest.mock('../../models/booking.model');
 jest.mock('../../models/property.model');
@@ -32,7 +34,12 @@ describe('BookingService', () => {
         maxGuests: 4,
     };
 
-    const bookingService: BookingService = new BookingService();
+    let bookingService: BookingService;
+
+    beforeAll(() => {
+        bookingService = container.resolve(BookingService);
+    });
+
 
     afterEach(() => {
         jest.clearAllMocks();
