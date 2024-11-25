@@ -13,7 +13,7 @@ const propertySchema = new mongoose.Schema<IPropertyDocument>(
         owner: {
             type: mongoose.Schema.Types.ObjectId,
             ref: 'User',
-            required: true,
+            required: false,
         },
         description: {
             type: String,
@@ -48,21 +48,6 @@ const propertySchema = new mongoose.Schema<IPropertyDocument>(
         }
     }
 );
-
-
-propertySchema.statics.createProperty = async function (
-    userId: string,
-    propertyData: IPropertyCreate
-): Promise<IPropertyResponse> {
-    const property = await this.create({
-        ...propertyData,
-        owner: userId
-    });
-    // Convert the Mongoose document to a plain JavaScript object and cast it to IPropertyResponse
-    // This is necessary because Mongoose documents have additional methods and properties that are not part of the IPropertyResponse interface.
-    // By converting to a plain object, we strip away these extra properties, ensuring the returned object conforms to the IPropertyResponse type.
-    return <IPropertyResponse>property.toObject();
-};
 
 export const Property = mongoose.model<IPropertyDocument, IPropertyModel>('Property', propertySchema);
 

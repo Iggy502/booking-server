@@ -1,11 +1,11 @@
 // Objective: User service to handle user operations
 import {User} from '../models/user.model';
 import {IUserResponse, IUserCreate} from '../models/interfaces';
-import {injectable} from 'tsyringe';
+import {injectable, singleton} from 'tsyringe';
 
 //https://github.com/kriscfoster/typescript-dependency-injection/blob/master/src/book/BookController.ts
 
-@injectable()
+@singleton()
 export class UserService {
     async createUser(userData: IUserCreate): Promise<IUserResponse> {
         const user = await User.create(userData);

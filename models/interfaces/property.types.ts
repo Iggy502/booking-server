@@ -1,7 +1,7 @@
 // src/models/types/property.index.ts
 import {Document, Types} from 'mongoose';
 
-interface IAddress {
+export interface IAddress {
     street: string;
     city: string;
     country: string;

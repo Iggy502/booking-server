@@ -13,7 +13,12 @@ const userSchema = new mongoose.Schema<IUserDocument>(
             trim: true,
             lowercase: true,
         },
-        name: {
+        firstName: {
+            type: String,
+            required: true,
+            trim: true,
+        },
+        lastName: {
             type: String,
             required: true,
             trim: true,
@@ -31,14 +36,19 @@ const userSchema = new mongoose.Schema<IUserDocument>(
     },
     {
         timestamps: true,
-        toJSON: {
+        toObject: {
             transform: (doc, ret) => {
                 ret.id = ret._id;
                 delete ret._id;
+                delete ret.createdAt;
+                delete ret.updatedAt;
                 delete ret.__v;
-                delete ret.password;
-                return ret;
+                delete ret.password
+                const {id, ...rest} = ret;
+                return {id, ...rest};
             }
+
+
         }
     }
 );
@@ -50,6 +60,18 @@ userSchema.pre('save', async function (next) {
         this.password = await bcrypt.hash(this.password, salt);
     }
     next();
+});
+
+//virtual property to get full name
+userSchema.virtual('fullName').get(function (this: IUserDocument) {
+    return `${this.firstName} ${this.lastName}`;
+});
+
+//virtual to set full name
+userSchema.virtual('fullName').set(function (this: IUserDocument, fullName: string) {
+    const [firstName, lastName] = fullName.split(' ');
+    this.firstName = firstName;
+    this.lastName = lastName;
 });
 
 

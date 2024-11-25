@@ -12,17 +12,15 @@ describe('UserService', () => {
     const mockUser: IUserResponse = {
         id: mockUserId,
         email: 'test@example.com',
-        name: 'Test User',
+        firstName: 'Test',
+        lastName: 'User',
         phone: '1234567890',
-        createdAt: new Date(),
-        updatedAt: new Date(),
     };
-
 
     let userService: UserService;
 
-
-    beforeAll(() => {
+    beforeEach(() => {
+        jest.clearAllMocks();
         userService = container.resolve(UserService);
     });
 
@@ -33,7 +31,8 @@ describe('UserService', () => {
     it('should create a user', async () => {
         const userData: IUserCreate = {
             email: 'test@example.com',
-            name: 'Test User',
+            firstName: 'Test',
+            lastName: 'User',
             phone: '1234567890',
             password: 'password123',
         };
@@ -46,7 +45,6 @@ describe('UserService', () => {
         const result = await userService.createUser(userData);
         expect(result).toEqual(mockUser);
         expect(User.create).toHaveBeenCalledWith(userData);
-
     });
 
     it('should get a user by id', async () => {
@@ -61,7 +59,7 @@ describe('UserService', () => {
     });
 
     it('should update a user', async () => {
-        const updateData = {name: 'Updated User'};
+        const updateData = {firstName: 'Updated'};
 
         (User.findByIdAndUpdate as jest.Mock).mockResolvedValue({
             ...mockUser,

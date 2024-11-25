@@ -15,7 +15,8 @@ db.bookings.createIndex({guest: 1});
 db.users.insertMany([
     {
         email: 'john@example.com',
-        name: 'John Doe',
+        firstName: 'John',
+        lastName: 'Doe',
         phone: '+1234567890',
         password: 'test',
         createdAt: new Date(),
@@ -23,7 +24,8 @@ db.users.insertMany([
     },
     {
         email: 'jane@example.com',
-        name: 'Jane Smith',
+        firstName: 'Jane',
+        lastName: 'Doe',
         phone: '+1987654321',
         password: 'test',
         createdAt: new Date(),
@@ -71,6 +73,7 @@ db.properties.insertMany([
 
 // Get property ID for reference
 const propertyId = db.properties.findOne({name: 'Luxury Beach House'})._id;
+
 
 // Insert sample booking
 db.bookings.insertOne({

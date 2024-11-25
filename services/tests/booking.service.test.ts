@@ -5,6 +5,7 @@ import {IBookingCreate, IBookingResponse, IBookingUpdate} from '../../models/int
 import mongoose from 'mongoose';
 import {Property} from "../../models/property.model";
 import {container} from "tsyringe";
+import {HttpError} from "../../exceptions/http-error";
 
 jest.mock('../../models/booking.model');
 jest.mock('../../models/property.model');
@@ -36,7 +37,8 @@ describe('BookingService', () => {
 
     let bookingService: BookingService;
 
-    beforeAll(() => {
+    beforeEach(() => {
+        jest.clearAllMocks();
         bookingService = container.resolve(BookingService);
     });
 
@@ -126,5 +128,31 @@ describe('BookingService', () => {
         expect(result).toEqual(mockBooking);
         expect(Booking.findByIdAndDelete).toHaveBeenCalledWith(mockBookingId.toString());
     });
+
+    it('should get bookings by a valid field', async () => {
+        const field = 'status';
+        const value = 'pending';
+        (Booking.find as jest.Mock).mockResolvedValue([{
+            ...mockBooking,
+            toObject: () => mockBooking,
+        }]);
+
+        const result = await bookingService.getBookingsByField(field, value);
+        expect(result).toEqual([mockBooking]);
+        expect(Booking.find).toHaveBeenCalledWith({[field]: value});
+    });
+
+    it('should throw an error if the field is invalid', async () => {
+        const field = 'invalidField';
+        const value = 'someValue';
+
+        await expect(bookingService.getBookingsByField(field, value))
+            .rejects
+            .toThrow(HttpError);
+
+        expect(Booking.find).not.toHaveBeenCalled();
+    });
+
+
 });
 

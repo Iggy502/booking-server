@@ -1,9 +1,10 @@
 //booking operations
 // Objective: Booking service to handle booking operations
 import {Booking} from '../models/booking.model';
-import {IBookingCreate, IBookingResponse, IBookingUpdate} from '../models/interfaces';
+import {IBookingCreate, IBookingDocument, IBookingResponse, IBookingUpdate} from '../models/interfaces';
 import {Property} from "../models/property.model";
 import {injectable} from "tsyringe";
+import {HttpError} from "../exceptions/http-error";
 
 @injectable()
 export class BookingService {
@@ -28,6 +29,22 @@ export class BookingService {
     async getBookingById(bookingId: string): Promise<IBookingResponse> {
         const booking = await Booking.findById(bookingId);
         return <IBookingResponse>booking?.toObject();
+    }
+
+    async getBookingsByUserId(userId: string): Promise<IBookingResponse[]> {
+        const bookings: IBookingDocument[] = await Booking.find({guest: userId});
+        return bookings.map(booking => <IBookingResponse>booking.toObject());
+    }
+
+    //generic method to get bookings filtered by any field
+    async getBookingsByField(field: string, value: string): Promise<IBookingResponse[]> {
+        //check if field exists in the schema
+        if (!Object.keys(Booking.schema.obj).includes(field)) {
+            throw new HttpError(400, 'Invalid field');
+        }
+
+        const bookings = await Booking.find({[field]: value});
+        return bookings.map(booking => <IBookingResponse>booking.toObject());
     }
 
     async updateBooking(bookingId: string, bookingData: IBookingUpdate): Promise<IBookingResponse> {
