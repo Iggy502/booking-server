@@ -3,7 +3,6 @@ import {User} from '../models/user.model';
 import {IUserResponse, IUserCreate} from '../models/interfaces';
 import {injectable, singleton} from 'tsyringe';
 
-//https://github.com/kriscfoster/typescript-dependency-injection/blob/master/src/book/BookController.ts
 
 @singleton()
 export class UserService {
