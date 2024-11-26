@@ -10,6 +10,11 @@ export interface TokenPayload {
     roles: UserRole[];
 }
 
+export interface RefreshTokenPayload {
+    id: string;
+    deviceInfo: string;
+}
+
 export interface AuthRequest extends Request {
     user?: TokenPayload;
 }

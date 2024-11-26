@@ -3,6 +3,7 @@ import {AuthUtils} from "../middleware/auth/utils/auth.utils";
 import {User} from "../models/user.model";
 import {IUserResponse} from "../models/interfaces";
 import {UnauthorizedError} from "../middleware/auth/exceptions/unauthorized.error";
+import {RefreshTokenPayload} from "../middleware/auth/types/token.type";
 
 interface LoginResponse {
     user: IUserResponse;
@@ -20,7 +21,7 @@ export class AuthService {
     }
 
     async login(email: string, password: string, deviceInfo: string): Promise<LoginResponse> {
-        const user = await User.findOne({ email }).select('+password');
+        const user = await User.findOne({email}).select('+password');
 
         if (!user) {
             throw new UnauthorizedError('Invalid credentials');
@@ -38,7 +39,9 @@ export class AuthService {
             user.refreshTokens.shift();
         }
 
-        const { accessToken, refreshToken } = this.authUtils.generateTokens(user, deviceInfo);
+        // Generate tokens
+        const accessToken = this.authUtils.generateAccessToken(user);
+        const refreshToken = this.authUtils.generateRefreshToken(user, deviceInfo);
 
         // Add new session
         user.refreshTokens.push({
@@ -56,8 +59,10 @@ export class AuthService {
         };
     }
 
-    async refreshToken(token: string, deviceInfo: string): Promise<{ accessToken: string }> {
-        const decoded = this.authUtils.verifyToken(token, true);
+    async refreshToken(token: string, deviceInfo: string): Promise<string> {
+        const decoded: RefreshTokenPayload = this.authUtils.verifyToken(token, true) as RefreshTokenPayload;
+
+
 
         const user = await User.findOne({
             _id: decoded.id,
@@ -84,19 +89,19 @@ export class AuthService {
         user.refreshTokens[tokenIndex].lastUsed = new Date();
         await user.save();
 
-        const { accessToken } = this.authUtils.generateTokens(user, deviceInfo);
-        return { accessToken };
+        return this.authUtils.generateAccessToken(user);
     }
+
 
     async logout(userId: string, refreshToken: string): Promise<void> {
         await User.findByIdAndUpdate(userId, {
-            $pull: { refreshTokens: { token: refreshToken } }
+            $pull: {refreshTokens: {token: refreshToken}}
         });
     }
 
     async logoutAll(userId: string): Promise<void> {
         await User.findByIdAndUpdate(userId, {
-            $set: { refreshTokens: [] }
+            $set: {refreshTokens: []}
         });
     }
 

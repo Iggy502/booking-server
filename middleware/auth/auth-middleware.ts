@@ -1,6 +1,6 @@
 // src/middleware/auth.middleware.ts
 import {NextFunction, Response} from 'express';
-import {AuthRequest} from './types/token.type';
+import {AuthRequest, TokenPayload} from './types/token.type';
 import {UnauthorizedError} from './exceptions/unauthorized.error';
 import {AuthUtils} from './utils/auth.utils';
 import {singleton} from 'tsyringe';
@@ -25,7 +25,7 @@ export class AuthMiddleware {
             }
 
             // Attach user to request for subsequent middleware
-            req.user = this.authUtils.verifyToken(token);
+            req.user = this.authUtils.verifyToken(token) as TokenPayload;
 
             next();
         } catch (error) {
