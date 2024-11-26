@@ -12,8 +12,13 @@ export class BookingService {
     async createBooking(userId: string, bookingData: IBookingCreate): Promise<IBookingResponse> {
         const property = await Property.findById(bookingData.property);
         if (!property) {
-            throw new Error('Property not found');
+            throw new HttpError(404, 'Property not found');
         }
+
+        if (bookingData.numberOfGuests > property.maxGuests) {
+            throw new HttpError(400, 'Number of guests exceeds property limit');
+        }
+
         const duration = (new Date(bookingData.checkOut).getTime() - new Date(bookingData.checkIn).getTime()) / (1000 * 60 * 60 * 24);
 
         const booking = await Booking.create({

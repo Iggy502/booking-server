@@ -35,6 +35,26 @@ export class BookingController {
      *           application/json:
      *             schema:
      *               $ref: '#/components/schemas/BookingResponse'
+     *       400:
+     *          description: Bad request
+     *          content:
+     *           application/json:
+     *             schema:
+     *             type: object
+     *             properties:
+     *               error:
+     *               type: string
+     *               example: Bad request
+     *       404:
+     *           description: Not found
+     *           content:
+     *           application/json:
+     *             schema:
+     *             type: object
+     *             properties:
+     *               error:
+     *               type: string
+     *               example: Not found
      */
     createBooking = async (req: Request, res: Response) => {
         const userId = req.query.userId as string;
@@ -64,7 +84,7 @@ export class BookingController {
      *         content:
      *           application/json:
      *             schema:
-     *               $ref: '#/components/schemas/Booking'
+     *               $ref: '#/components/schemas/BookingResponse'
      */
     getBookingById = async (req: Request, res: Response) => {
         const bookingId = req.params.id;

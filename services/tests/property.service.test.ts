@@ -30,8 +30,7 @@ describe('PropertyService', () => {
         toObject: jest.fn()
     };
 
-    beforeEach(() => {
-        jest.clearAllMocks();
+    beforeAll(() => {
         propertyService = container.resolve(PropertyService);
         mockProperty.toObject.mockReturnValue({...mockProperty, id: mockProperty._id.toString()});
     });
@@ -136,7 +135,6 @@ describe('PropertyService', () => {
                     address: mockProperty.address
                 }));
 
-                // Updated to match the exact pipeline structure
                 expect(Property.aggregate).toHaveBeenCalledWith([
                     {
                         $lookup: {
@@ -149,7 +147,7 @@ describe('PropertyService', () => {
                     {
                         $match: {
                             'bookings.0': {$exists: false},
-                            maxGuests: '4'  // String because it comes from the filter Map
+                            maxGuests: mockProperty.maxGuests.toString()
                         }
                     },
                     {

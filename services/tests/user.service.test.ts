@@ -19,14 +19,14 @@ describe('UserService', () => {
 
     let userService: UserService;
 
-    beforeEach(() => {
-        jest.clearAllMocks();
+    beforeAll(() => {
         userService = container.resolve(UserService);
     });
 
     afterEach(() => {
         jest.clearAllMocks();
     });
+
 
     it('should create a user', async () => {
         const userData: IUserCreate = {

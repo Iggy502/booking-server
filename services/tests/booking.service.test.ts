@@ -37,15 +37,14 @@ describe('BookingService', () => {
 
     let bookingService: BookingService;
 
-    beforeEach(() => {
-        jest.clearAllMocks();
+    beforeAll(() => {
         bookingService = container.resolve(BookingService);
     });
-
 
     afterEach(() => {
         jest.clearAllMocks();
     });
+
 
     it('should create a booking', async () => {
         const bookingData: IBookingCreate = {
@@ -86,7 +85,7 @@ describe('BookingService', () => {
 
         await expect(bookingService.createBooking(mockUserId.toString(), bookingData))
             .rejects
-            .toThrow('Property not found');
+            .toThrow(new HttpError(404, 'Property not found'));
 
         expect(Property.findById).toHaveBeenCalledWith(mockPropertyId);
     });
@@ -151,6 +150,31 @@ describe('BookingService', () => {
             .toThrow(HttpError);
 
         expect(Booking.find).not.toHaveBeenCalled();
+    });
+
+    it('should throw an error if the number of guests exceeds the property\'s max guests', async () => {
+        const bookingData: IBookingCreate = {
+            property: mockPropertyId,
+            guest: mockUserId,
+            checkIn: new Date(),
+            checkOut: new Date(),
+            numberOfGuests: 5, // Exceeds the maxGuests of 4
+        };
+
+        (Property.findById as jest.Mock).mockResolvedValue({...mockProperty, toObject: () => mockProperty});
+        (Booking.create as jest.Mock).mockResolvedValue({
+            ...mockBooking,
+            toObject: () => mockBooking,
+        });
+
+
+        await expect(bookingService.createBooking(mockUserId.toString(), bookingData))
+            .rejects
+            .toThrow(new HttpError(400, "Number of guests exceeds property limit"));
+
+        expect(Property.findById).toHaveBeenCalledWith(mockPropertyId);
+
+
     });
 
 

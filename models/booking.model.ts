@@ -61,19 +61,6 @@ bookingSchema.pre('save', function (next) {
     next();
 });
 
-// Validate number of guests against property capacity
-bookingSchema.pre('save', async function (next) {
-    const property = await Property.findById(this.property);
-    if (!property) {
-        next(new Error('Property not found'));
-        return;
-    }
-    if (this.numberOfGuests > property.maxGuests) {
-        next(new Error(`Maximum ${property.maxGuests} guests allowed`));
-        return;
-    }
-    next();
-});
 
 // Instance methods
 bookingSchema.methods.calculateDuration = function (): number {
