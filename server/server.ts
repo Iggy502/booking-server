@@ -48,7 +48,6 @@ app.listen(PORT, async () => {
     app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
     console.log(`Swagger documentation is available at http://localhost:${PORT}/api-docs`);
 
-
 });
 
 //connect to database

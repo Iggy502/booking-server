@@ -22,6 +22,7 @@ export class BookingController {
      *   post:
      *     summary: Create a booking
      *     description: Create a booking
+     *     tags: [Booking]
      *     requestBody:
      *       required: true
      *       content:
@@ -71,6 +72,7 @@ export class BookingController {
      *   get:
      *     summary: Get a booking by id
      *     description: Get a booking by id
+     *     tags: [Booking]
      *     parameters:
      *       - in: path
      *         name: id
@@ -99,6 +101,7 @@ export class BookingController {
      *   put:
      *     summary: Update a booking
      *     description: Update a booking
+     *     tags: [Booking]
      *     parameters:
      *       - in: path
      *         name: id
@@ -133,6 +136,7 @@ export class BookingController {
      * /bookings/{id}:
      *   delete:
      *     summary: Delete a booking
+     *     tags: [Booking]
      *     description: Delete a booking
      *     parameters:
      *       - in: path

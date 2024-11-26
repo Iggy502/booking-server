@@ -11,6 +11,16 @@ export class AuthController {
     authMiddleware: AuthMiddleware;
     router: Router;
 
+    // Cookie configuration
+    private readonly REFRESH_TOKEN_COOKIE_NAME = 'refreshToken';
+    private readonly COOKIE_OPTIONS = {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production', // Only send cookie over HTTPS in production
+        sameSite: 'strict' as const,
+        path: '/auth', // Restrict cookie to auth routes
+        maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days in milliseconds
+    };
+
     constructor() {
         this.authService = container.resolve(AuthService);
         this.router = Router();
@@ -22,9 +32,9 @@ export class AuthController {
      * /auth/login:
      *   post:
      *     summary: Login user
-     *     description: Authenticate user and return tokens
+     *     description: Authenticate user and return access token in response, refresh token in HTTP-only cookie
      *     tags: [Auth]
-     *     security: []  # No security required for login
+     *     security: []
      *     requestBody:
      *       required: true
      *       content:
@@ -37,20 +47,24 @@ export class AuthController {
      *         content:
      *           application/json:
      *             schema:
-     *               $ref: '#/components/schemas/LoginResponse'
+     *               $ref: '#/components/schemas/AccessTokenResponse'
      *       401:
      *         description: Invalid credentials
-     *         content:
-     *           application/json:
-     *             schema:
-     *               $ref: '#/components/schemas/ErrorResponse'
      */
     login = async (req: Request, res: Response) => {
         try {
             const {email, password} = req.body;
             const deviceInfo = req.headers['user-agent'] || 'unknown';
             const result = await this.authService.login(email, password, deviceInfo);
-            res.json(result);
+
+            // Set refresh token as HTTP-only cookie
+            res.cookie(
+                this.REFRESH_TOKEN_COOKIE_NAME,
+                result.refreshToken,
+                this.COOKIE_OPTIONS
+            );
+
+            res.json({accessToken: result.accessToken});
         } catch (error: any) {
             res.status(401).json({message: error.message});
         }
@@ -61,15 +75,9 @@ export class AuthController {
      * /auth/refresh-token:
      *   post:
      *     summary: Refresh access token
-     *     description: Get new access token using refresh token
+     *     description: Get new access token using refresh token from HTTP-only cookie
      *     tags: [Auth]
-     *     security: []  # No security required for refresh token
-     *     requestBody:
-     *       required: true
-     *       content:
-     *         application/json:
-     *           schema:
-     *             $ref: '#/components/schemas/RefreshTokenRequest'
+     *     security: []
      *     responses:
      *       200:
      *         description: New access token generated
@@ -79,17 +87,26 @@ export class AuthController {
      *               $ref: '#/components/schemas/RefreshTokenResponse'
      *       401:
      *         description: Invalid refresh token
-     *         content:
-     *           application/json:
-     *             schema:
-     *               $ref: '#/components/schemas/ErrorResponse'
      */
     refreshToken = async (req: Request, res: Response) => {
         try {
-            const {refreshToken} = req.body;
+            const refreshToken = req.cookies[this.REFRESH_TOKEN_COOKIE_NAME];
+            if (!refreshToken) {
+                throw new Error('No refresh token provided');
+            }
+
             const deviceInfo = req.headers['user-agent'] || 'unknown';
             const result = await this.authService.refreshToken(refreshToken, deviceInfo);
-            res.json(result);
+
+
+            // Set new refresh token as HTTP-only cookie
+            res.cookie(
+                this.REFRESH_TOKEN_COOKIE_NAME,
+                result,
+                this.COOKIE_OPTIONS
+            );
+
+            res.json({accessToken: result});
         } catch (error: any) {
             res.status(401).json({message: error.message});
         }
@@ -100,34 +117,27 @@ export class AuthController {
      * /auth/logout:
      *   post:
      *     summary: Logout user
-     *     description: Invalidate refresh token for current session
+     *     description: Invalidate refresh token and clear the cookie
      *     tags: [Auth]
      *     security:
      *       - bearerAuth: []
-     *     requestBody:
-     *       required: true
-     *       content:
-     *         application/json:
-     *           schema:
-     *             $ref: '#/components/schemas/LogoutRequest'
      *     responses:
      *       200:
      *         description: Logged out successfully
-     *         content:
-     *           application/json:
-     *             schema:
-     *               $ref: '#/components/schemas/MessageResponse'
-     *       401:
-     *         description: Unauthorized
-     *         content:
-     *           application/json:
-     *             schema:
-     *               $ref: '#/components/schemas/ErrorResponse'
      */
     logout = async (req: AuthRequest, res: Response) => {
         try {
-            const {refreshToken} = req.body;
-            await this.authService.logout(req.user!.id, refreshToken);
+            const refreshToken = req.cookies[this.REFRESH_TOKEN_COOKIE_NAME];
+            if (refreshToken) {
+                await this.authService.logout(req.user!.id, refreshToken);
+            }
+
+            // Clear the refresh token cookie
+            res.clearCookie(this.REFRESH_TOKEN_COOKIE_NAME, {
+                ...this.COOKIE_OPTIONS,
+                maxAge: 0
+            });
+
             res.json({message: 'Logged out successfully'});
         } catch (error: any) {
             res.status(401).json({message: error.message});
@@ -139,27 +149,24 @@ export class AuthController {
      * /auth/logout-all:
      *   post:
      *     summary: Logout from all devices
-     *     description: Invalidate all refresh tokens for the user
+     *     description: Invalidate all refresh tokens and clear the current cookie
      *     tags: [Auth]
      *     security:
      *       - bearerAuth: []
      *     responses:
      *       200:
      *         description: Logged out from all devices
-     *         content:
-     *           application/json:
-     *             schema:
-     *               $ref: '#/components/schemas/MessageResponse'
-     *       401:
-     *         description: Unauthorized
-     *         content:
-     *           application/json:
-     *             schema:
-     *               $ref: '#/components/schemas/ErrorResponse'
      */
     logoutAll = async (req: AuthRequest, res: Response) => {
         try {
             await this.authService.logoutAll(req.user!.id);
+
+            // Clear the refresh token cookie
+            res.clearCookie(this.REFRESH_TOKEN_COOKIE_NAME, {
+                ...this.COOKIE_OPTIONS,
+                maxAge: 0
+            });
+
             res.json({message: 'Logged out from all devices'});
         } catch (error: any) {
             res.status(401).json({message: error.message});
@@ -199,6 +206,7 @@ export class AuthController {
             res.status(401).json({message: error.message});
         }
     };
+
 
     routes() {
         // Public routes

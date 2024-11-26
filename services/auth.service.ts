@@ -60,9 +60,8 @@ export class AuthService {
     }
 
     async refreshToken(token: string, deviceInfo: string): Promise<string> {
+
         const decoded: RefreshTokenPayload = this.authUtils.verifyToken(token, true) as RefreshTokenPayload;
-
-
 
         const user = await User.findOne({
             _id: decoded.id,

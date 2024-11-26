@@ -195,24 +195,15 @@ const swaggerOptions = {
                         }
                     }
                 },
-
-                LoginResponse: {
+                AccessTokenResponse: {
                     type: 'object',
                     properties: {
-                        user: {
-                            $ref: '#/components/schemas/UserResponse'
-                        },
                         accessToken: {
-                            type: 'string',
-                            example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'
-                        },
-                        refreshToken: {
                             type: 'string',
                             example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'
                         }
                     }
                 },
-
                 RefreshTokenRequest: {
                     type: 'object',
                     required: ['refreshToken'],

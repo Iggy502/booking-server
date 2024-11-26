@@ -3,9 +3,8 @@ import {Request, Response} from 'express';
 import {UserService} from '../services/user.service';
 import {IUserCreate, IUserResponse} from '../models/interfaces';
 import {Router} from 'express';
-import {autoInjectable, container, singleton} from "tsyringe";
-import {ne} from "@faker-js/faker";
-import {Error} from "mongoose";
+import {container, singleton} from "tsyringe";
+
 
 @singleton()
 export class UserController {
@@ -23,6 +22,7 @@ export class UserController {
      *   post:
      *     summary: Create a user
      *     description: Create a user
+     *     tags: [User]
      *     requestBody:
      *       required: true
      *       content:
@@ -59,6 +59,7 @@ export class UserController {
      *   get:
      *     summary: Get a user by id
      *     description: Get a user by id
+     *     tags: [User]
      *     parameters:
      *       - in: path
      *         name: id
@@ -95,6 +96,7 @@ export class UserController {
      *   put:
      *     summary: Update a user
      *     description: Update a user
+     *     tags: [User]
      *     parameters:
      *       - in: path
      *         name: id
@@ -147,6 +149,7 @@ export class UserController {
      *   delete:
      *     summary: Delete a user
      *     description: Delete a user
+     *     tags: [User]
      *     parameters:
      *       - in: path
      *         name: id

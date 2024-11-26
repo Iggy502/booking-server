@@ -61,6 +61,7 @@ const userSchema = new mongoose.Schema<IUserDocument>(
                 delete ret.__v;
                 delete ret.password
                 delete ret.refreshTokens;
+                delete ret.roles;
                 const {id, ...rest} = ret;
                 return {id, ...rest};
             }
@@ -73,10 +74,8 @@ const userSchema = new mongoose.Schema<IUserDocument>(
 // Hash password before saving
 userSchema.pre('save', async function (next) {
     if (this.isModified('password')) {
-
         const salt = await bcrypt.genSalt(10);
         this.password = await bcrypt.hash(this.password, salt);
-
     }
     next();
 });
@@ -102,7 +101,7 @@ userSchema.methods.comparePassword = async function (candidatePassword: string):
 
     var test = UserRole.TEST;
 
-    if(user.roles.includes(UserRole.TEST)) return candidatePassword === user.password;
+    if (user.roles.includes(UserRole.TEST)) return candidatePassword === user.password;
     return bcrypt.compare(candidatePassword, user.password);
 };
 

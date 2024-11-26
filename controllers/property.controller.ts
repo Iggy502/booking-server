@@ -22,6 +22,7 @@ export class PropertyController {
      *   post:
      *     summary: Create a property
      *     description: Create a property
+     *     tags: [Property]
      *     requestBody:
      *       required: true
      *       content:
@@ -50,6 +51,7 @@ export class PropertyController {
      *   get:
      *     summary: Get all properties or filter properties
      *     description: Get all properties or filter properties
+     *     tags: [Property]
      *     parameters:
      *       - in: query
      *         name: availableOnly
