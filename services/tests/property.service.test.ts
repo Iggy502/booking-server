@@ -96,6 +96,7 @@ describe('PropertyService', () => {
         });
 
         describe('get operations', () => {
+            //TODO: Remove hardcoded values when expecting the exact values
             it('should return properties without bookings', async () => {
                 const mockAggregateResponse = [{
                     _id: mockProperty._id,
