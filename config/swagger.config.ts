@@ -17,6 +17,14 @@ const swaggerOptions = {
             },
         ],
         components: {
+            securitySchemes: {
+                bearerAuth: {
+                    type: 'http',
+                    scheme: 'bearer',
+                    bearerFormat: 'JWT',
+                    description: 'Enter your JWT token in the format: Bearer <token>'
+                }
+            },
             schemas: {
                 UserCreate: {
                     type: 'object',
@@ -172,9 +180,104 @@ const swaggerOptions = {
                             }
                         }
                     ]
+                },
+                LoginRequest: {
+                    type: 'object',
+                    required: ['email', 'password'],
+                    properties: {
+                        email: {
+                            type: 'string',
+                            example: faker.internet.email()
+                        },
+                        password: {
+                            type: 'string',
+                            example: faker.internet.password()
+                        }
+                    }
+                },
+
+                LoginResponse: {
+                    type: 'object',
+                    properties: {
+                        user: {
+                            $ref: '#/components/schemas/UserResponse'
+                        },
+                        accessToken: {
+                            type: 'string',
+                            example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'
+                        },
+                        refreshToken: {
+                            type: 'string',
+                            example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'
+                        }
+                    }
+                },
+
+                RefreshTokenRequest: {
+                    type: 'object',
+                    required: ['refreshToken'],
+                    properties: {
+                        refreshToken: {
+                            type: 'string',
+                            example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'
+                        }
+                    }
+                },
+
+                RefreshTokenResponse: {
+                    type: 'object',
+                    properties: {
+                        accessToken: {
+                            type: 'string',
+                            example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'
+                        }
+                    }
+                },
+
+                LogoutRequest: {
+                    type: 'object',
+                    required: ['refreshToken'],
+                    properties: {
+                        refreshToken: {
+                            type: 'string',
+                            example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'
+                        }
+                    }
+                },
+
+                MessageResponse: {
+                    type: 'object',
+                    properties: {
+                        message: {
+                            type: 'string',
+                            example: 'Operation successful'
+                        }
+                    }
+                },
+
+                SessionResponse: {
+                    type: 'object',
+                    properties: {
+                        deviceInfo: {
+                            type: 'string',
+                            example: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)...'
+                        },
+                        lastUsed: {
+                            type: 'string',
+                            format: 'date-time',
+                            example: faker.date.recent().toISOString()
+                        }
+                    }
+                },
+                ErrorResponse: {
+                    type: 'object',
+                    properties: {
+                        message: {
+                            type: 'string',
+                            example: 'Error message'
+                        }
+                    }
                 }
-
-
             }
         }
     },

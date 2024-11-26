@@ -3,7 +3,7 @@
 import {Property} from '../models/property.model';
 import {IPropertyCreate, IPropertyResponse} from '../models/interfaces';
 import {injectable} from 'tsyringe';
-import {HttpError} from "../exceptions/http-error";
+import {HttpError} from "./exceptions/http-error";
 
 @injectable()
 export class PropertyService {
@@ -96,9 +96,6 @@ export class PropertyService {
                 }
             }
         ]);
-
-        console.log(properties);
-
 
         return properties.map(property =>
             Property.hydrate(property).toObject() as IPropertyResponse

@@ -3,3 +3,4 @@ export * from './user.types';
 export * from './booking.types';
 export * from './property.types';
 export * from './model.types';
+export * from './auth.types';

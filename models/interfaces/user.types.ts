@@ -1,4 +1,11 @@
 import {Document} from 'mongoose';
+import {UserRole} from "./auth.types";
+
+export interface RefreshToken {
+    token: string;
+    deviceInfo: string;
+    lastUsed: Date;
+}
 
 export interface IUserBase {
     email: string;
@@ -6,13 +13,15 @@ export interface IUserBase {
     lastName: string;
     phone: string;
     password: string;
+    roles: UserRole[];
 }
 
 export interface IUserDocument extends IUserBase, Document {
+    refreshTokens: RefreshToken[];
     comparePassword(candidatePassword: string): Promise<boolean>;
 }
 
-export interface IUserCreate extends IUserBase{
+export interface IUserCreate extends IUserBase {
 }
 
 export interface IUserResponse extends Omit<IUserBase, 'password'> {

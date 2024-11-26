@@ -4,7 +4,7 @@ import {Property} from '../../models/property.model';
 import {IPropertyCreate, IPropertyResponse, IAddress} from '../../models/interfaces';
 import {container} from 'tsyringe';
 import {Types} from 'mongoose';
-import {HttpError} from "../../exceptions/http-error";
+import {HttpError} from "../exceptions/http-error";
 
 jest.mock('../../models/property.model');
 

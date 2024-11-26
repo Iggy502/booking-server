@@ -2,7 +2,7 @@ import 'reflect-metadata';
 import {container} from 'tsyringe';
 import {UserService} from '../user.service';
 import {User} from '../../models/user.model';
-import {IUserCreate, IUserResponse} from '../../models/interfaces';
+import {IUserCreate, IUserResponse, UserRole} from '../../models/interfaces';
 import mongoose from 'mongoose';
 
 jest.mock('../../models/user.model');
@@ -15,6 +15,7 @@ describe('UserService', () => {
         firstName: 'Test',
         lastName: 'User',
         phone: '1234567890',
+        roles: [UserRole.USER],
     };
 
     let userService: UserService;
@@ -35,6 +36,7 @@ describe('UserService', () => {
             lastName: 'User',
             phone: '1234567890',
             password: 'password123',
+            roles: [UserRole.USER],
         };
 
         (User.create as jest.Mock).mockResolvedValue({

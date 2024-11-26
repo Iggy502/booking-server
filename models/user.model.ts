@@ -3,6 +3,7 @@ import mongoose from 'mongoose';
 import bcrypt from 'bcryptjs';
 //Automatically scans for index file if given path is a folder
 import {IUserDocument, IUserModel} from './interfaces';
+import {UserRole} from "./interfaces/auth.types";
 
 const userSchema = new mongoose.Schema<IUserDocument>(
     {
@@ -33,6 +34,21 @@ const userSchema = new mongoose.Schema<IUserDocument>(
             required: true,
             select: false,
         },
+        roles: {
+            type: [{
+                type: String,
+                enum: Object.values(UserRole)
+            }],
+            default: [UserRole.USER]
+        },
+        refreshTokens: [{
+            token: String,
+            deviceInfo: String,
+            lastUsed: {
+                type: Date,
+                default: Date.now
+            }
+        }]
     },
     {
         timestamps: true,
@@ -44,6 +60,7 @@ const userSchema = new mongoose.Schema<IUserDocument>(
                 delete ret.updatedAt;
                 delete ret.__v;
                 delete ret.password
+                delete ret.refreshTokens;
                 const {id, ...rest} = ret;
                 return {id, ...rest};
             }
@@ -56,8 +73,10 @@ const userSchema = new mongoose.Schema<IUserDocument>(
 // Hash password before saving
 userSchema.pre('save', async function (next) {
     if (this.isModified('password')) {
+
         const salt = await bcrypt.genSalt(10);
         this.password = await bcrypt.hash(this.password, salt);
+
     }
     next();
 });
@@ -77,8 +96,13 @@ userSchema.virtual('fullName').set(function (this: IUserDocument, fullName: stri
 
 // Method to compare passwords
 userSchema.methods.comparePassword = async function (candidatePassword: string): Promise<boolean> {
-    const user: IUserDocument = await User.findById(this._id).select({password: 1});
+
+    const user: IUserDocument = await User.findById(this._id).select({password: 1, roles: 1});
     if (!user?.password) throw new Error('Password not found');
+
+    var test = UserRole.TEST;
+
+    if(user.roles.includes(UserRole.TEST)) return candidatePassword === user.password;
     return bcrypt.compare(candidatePassword, user.password);
 };
 

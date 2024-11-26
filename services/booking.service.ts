@@ -4,7 +4,7 @@ import {Booking} from '../models/booking.model';
 import {IBookingCreate, IBookingDocument, IBookingResponse, IBookingUpdate} from '../models/interfaces';
 import {Property} from "../models/property.model";
 import {injectable} from "tsyringe";
-import {HttpError} from "../exceptions/http-error";
+import {HttpError} from "./exceptions/http-error";
 
 @injectable()
 export class BookingService {

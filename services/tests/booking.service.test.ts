@@ -5,7 +5,7 @@ import {IBookingCreate, IBookingResponse, IBookingUpdate} from '../../models/int
 import mongoose from 'mongoose';
 import {Property} from "../../models/property.model";
 import {container} from "tsyringe";
-import {HttpError} from "../../exceptions/http-error";
+import {HttpError} from "../exceptions/http-error";
 
 jest.mock('../../models/booking.model');
 jest.mock('../../models/property.model');

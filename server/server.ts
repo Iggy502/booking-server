@@ -8,6 +8,7 @@ import {BookingController} from "../controllers/booking.controller";
 import mongoose from 'mongoose';
 import {swaggerDocs} from '../config/swagger.config';
 import {PropertyController} from "../controllers/property.controller";
+import {AuthController} from "../controllers/auth-controller";
 
 
 const app = express();
@@ -23,6 +24,9 @@ app.use('/bookings', bookingController.routes());
 
 const propertyController = container.resolve(PropertyController);
 app.use('/properties', propertyController.routes());
+
+const authController = container.resolve(AuthController);
+app.use('/auth', authController.routes());
 
 app.get('/', (req, res) => {
     res.send('Hello World!');
