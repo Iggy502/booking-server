@@ -22,22 +22,24 @@ export class AuthUtils {
         };
 
         const accessToken = jwt.sign(payload, this.jwtSecret, {
-            expiresIn: this.jwtExpiresIn
+            expiresIn: this.jwtExpiresIn,
+            algorithm: 'HS256'
         });
 
         const refreshToken = jwt.sign({
             id: user.id,
             deviceInfo
         }, this.refreshSecret, {
-            expiresIn: this.refreshExpiresIn
+            expiresIn: this.refreshExpiresIn,
+            algorithm: 'HS256'
         });
 
         return { accessToken, refreshToken };
     }
 
-    verifyToken(token: string, isRefreshToken: boolean = false): any {
+    verifyToken(token: string, isRefreshToken: boolean = false): TokenPayload {
         try {
-            return jwt.verify(token, isRefreshToken ? this.refreshSecret : this.jwtSecret);
+            return jwt.verify(token, isRefreshToken ? this.refreshSecret : this.jwtSecret) as TokenPayload;
         } catch (error) {
             throw new UnauthorizedError('Invalid token');
         }

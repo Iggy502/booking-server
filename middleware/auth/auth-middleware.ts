@@ -1,5 +1,5 @@
 // src/middleware/auth.middleware.ts
-import {Response, NextFunction} from 'express';
+import {NextFunction, Response} from 'express';
 import {AuthRequest} from './types/token.type';
 import {UnauthorizedError} from './exceptions/unauthorized.error';
 import {AuthUtils} from './utils/auth.utils';
@@ -24,10 +24,8 @@ export class AuthMiddleware {
                 throw new UnauthorizedError('No token provided');
             }
 
-            const decoded = this.authUtils.verifyToken(token);
-
-            // Attach user to request
-            req.user = decoded;
+            // Attach user to request for subsequent middleware
+            req.user = this.authUtils.verifyToken(token);
 
             next();
         } catch (error) {
