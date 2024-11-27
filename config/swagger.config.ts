@@ -272,7 +272,7 @@ const swaggerOptions = {
             }
         }
     },
-    apis: ['./controllers/*.ts', './models/*.ts'],
+    apis: ['./controllers/*.ts'],
 };
 
 export const swaggerDocs = swaggerJsdoc(swaggerOptions);
