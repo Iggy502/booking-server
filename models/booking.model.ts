@@ -26,7 +26,7 @@ const bookingSchema = new mongoose.Schema<IBookingDocument>(
         },
         totalPrice: {
             type: Number,
-            required: true,
+            required: false,
             min: 0,
         },
         status: {
@@ -43,57 +43,18 @@ const bookingSchema = new mongoose.Schema<IBookingDocument>(
     {
         timestamps: true,
         toObject: {
-            transform: (doc, ret) => {
+            transform: (doc: IBookingDocument, ret) => {
                 ret.id = ret._id;
                 delete ret._id;
                 delete ret.__v;
-                return ret;
+                return ret as IBookingResponse;
             }
         }
     }
 );
 
-// Validate checkout date is after checkin
-bookingSchema.pre('save', function (next) {
-    if (this.checkOut <= this.checkIn) {
-        next(new Error('Check-out date must be after check-in date'));
-    }
-    next();
-});
 
 
-// Instance methods
-bookingSchema.methods.calculateDuration = function (): number {
-    return this.calculateDuration(this.checkIn, this.checkOut);
-};
-bookingSchema.methods.isPast = function (): boolean {
-    return this.checkOut < new Date();
-};
-
-const calculateDuration = (checkIn: Date, checkOut: Date): number => {
-    return (checkOut.getTime() - checkIn.getTime()) / (1000 * 60 * 60 * 24);
-}
-
-// Static method to create booking
-bookingSchema.statics.createBooking = async function (
-    userId: string,
-    bookingData: IBookingCreate
-): Promise<IBookingResponse> {
-    const property = await Property.findById(bookingData.property);
-    if (!property) {
-        throw new Error('Property not found');
-    }
-    const duration = (new Date(bookingData.checkOut).getTime() - new Date(bookingData.checkIn).getTime()) / (1000 * 60 * 60 * 24);
-
-    const booking = await this.create({
-        ...bookingData,
-        guest: userId,
-        totalPrice: property.pricePerNight * duration,
-        status: 'pending'
-    });
-
-    return <IBookingResponse>booking.toObject();
-};
 
 export const Booking = mongoose.model<IBookingDocument, IBookingModel>('Booking', bookingSchema);
 

@@ -2,6 +2,7 @@
 import {User} from '../models/user.model';
 import {IUserResponse, IUserCreate} from '../models/interfaces';
 import {injectable, singleton} from 'tsyringe';
+import {HttpError} from "./exceptions/http-error";
 
 
 @singleton()
@@ -13,7 +14,12 @@ export class UserService {
 
     async getUserById(userId: string): Promise<IUserResponse> {
         const user = await User.findById(userId);
-        return <IUserResponse>user?.toObject();
+
+        if (!user) {
+            throw new HttpError(404, 'User not found');
+        }
+
+        return <IUserResponse>user.toObject();
     }
 
     async updateUser(userId: string, userData: Partial<IUserCreate>): Promise<IUserResponse> {

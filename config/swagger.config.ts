@@ -96,6 +96,10 @@ const swaggerOptions = {
                             type: 'string',
                             example: new mongoose.Types.ObjectId()
                         },
+                        numberOfGuests: {
+                            type: 'number',
+                            example: 4
+                        },
                         checkIn: {
                             type: 'string',
                             example: faker.date.recent().toISOString()
@@ -110,16 +114,20 @@ const swaggerOptions = {
                 BookingResponse: {
                     allOf: [
                         {
-                            $ref: '#/components/schemas/BookingCreate'
-                        },
-                        {
                             type: 'object',
                             properties: {
                                 id: {
                                     type: 'string',
                                     example: new mongoose.Types.ObjectId()
+                                },
+                                totalPrice: {
+                                    type: 'number',
+                                    example: faker.finance.amount({min: 100, max: 1000})
                                 }
                             }
+                        },
+                        {
+                            $ref: '#/components/schemas/BookingCreate'
                         }
                     ]
                 },
