@@ -1,7 +1,7 @@
 import "reflect-metadata";
 import {PropertyService} from '../property.service';
 import {Property} from '../../models/property.model';
-import {IPropertyCreate, IPropertyResponse, IAddress} from '../../models/interfaces';
+import {IAddress, IPropertyCreate} from '../../models/interfaces';
 import {container} from 'tsyringe';
 import {Types} from 'mongoose';
 import {HttpError} from "../exceptions/http-error";

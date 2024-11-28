@@ -1,7 +1,7 @@
 // Objective: User service to handle user operations
 import {User} from '../models/user.model';
-import {IUserResponse, IUserCreate} from '../models/interfaces';
-import {injectable, singleton} from 'tsyringe';
+import {IUserCreate, IUserResponse} from '../models/interfaces';
+import {singleton} from 'tsyringe';
 import {HttpError} from "./exceptions/http-error";
 
 

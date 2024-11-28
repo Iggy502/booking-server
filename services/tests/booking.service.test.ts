@@ -6,7 +6,6 @@ import {Booking} from '../../models/booking.model';
 import {HttpError} from '../exceptions/http-error';
 import {Types} from 'mongoose';
 import {container} from "tsyringe";
-import {IBookingDocument, IBookingUpdate} from "../../models/interfaces";
 
 // Remove the node:test import and use Jest's describe
 jest.mock('../../models/property.model');

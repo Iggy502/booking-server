@@ -1,8 +1,7 @@
 //Controller for user
-import {Request, Response} from 'express';
+import {Request, Response, Router} from 'express';
 import {UserService} from '../services/user.service';
-import {IUserCreate, IUserResponse} from '../models/interfaces';
-import {Router} from 'express';
+import {IUserCreate} from '../models/interfaces';
 import {container, singleton} from "tsyringe";
 
 

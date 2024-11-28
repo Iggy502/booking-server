@@ -1,11 +1,8 @@
 //Controller for booking
-import {Request, Response} from 'express';
+import {Request, Response, Router} from 'express';
 import {BookingService} from '../services/booking.service';
-import {IBookingCreate, IBookingResponse, IBookingUpdate} from '../models/interfaces';
-import {Router} from 'express';
-import {autoInjectable, container, singleton} from "tsyringe";
-import {HttpError} from "../services/exceptions/http-error";
-import {json} from "body-parser";
+import {IBookingCreate, IBookingUpdate} from '../models/interfaces';
+import {container, singleton} from "tsyringe";
 
 @singleton()
 export class BookingController {

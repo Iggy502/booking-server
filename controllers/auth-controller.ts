@@ -1,6 +1,5 @@
-import {Request, Response} from 'express';
-import {Router} from 'express';
-import {autoInjectable, container, singleton} from "tsyringe";
+import {Request, Response, Router} from 'express';
+import {container, singleton} from "tsyringe";
 import {AuthService} from '../services/auth.service';
 import {AuthRequest} from '../middleware/auth/types/token.type';
 import {AuthMiddleware} from '../middleware/auth/auth-middleware';

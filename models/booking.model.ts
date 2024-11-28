@@ -1,8 +1,6 @@
 // src/models/booking.model.ts
-import mongoose, {Model} from 'mongoose';
-import {IBookingDocument, IBookingCreate, IBookingResponse, IBookingModel} from './interfaces';
-import {Property} from './property.model';
-
+import mongoose from 'mongoose';
+import {IBookingDocument, IBookingModel, IBookingResponse} from './interfaces';
 
 const bookingSchema = new mongoose.Schema<IBookingDocument>(
     {

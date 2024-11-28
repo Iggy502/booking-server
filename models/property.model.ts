@@ -1,6 +1,6 @@
 // src/models/property.model.ts
 import mongoose from 'mongoose';
-import {IPropertyDocument, IPropertyCreate, IPropertyResponse, IPropertyModel} from './interfaces';
+import {IPropertyDocument, IPropertyModel} from './interfaces';
 
 
 const propertySchema = new mongoose.Schema<IPropertyDocument>(

@@ -1,8 +1,8 @@
 // src/models/types/model.index.ts
-import { Model } from 'mongoose';
-import { IUserDocument, IUserCreate, IUserResponse } from './user.types';
-import { IPropertyDocument, IPropertyCreate, IPropertyResponse } from './property.types';
-import { IBookingDocument, IBookingCreate, IBookingResponse } from './booking.types';
+import {Model} from 'mongoose';
+import {IUserCreate, IUserDocument, IUserResponse} from './user.types';
+import {IPropertyCreate, IPropertyDocument, IPropertyResponse} from './property.types';
+import {IBookingCreate, IBookingDocument, IBookingResponse} from './booking.types';
 
 export interface IUserModel extends Model<IUserDocument> {
     createUser(userData: IUserCreate): Promise<IUserResponse>;

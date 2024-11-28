@@ -1,9 +1,8 @@
 //property.controller.ts
-import {Request, Response} from 'express';
-import {autoInjectable, container, singleton} from "tsyringe";
+import {Request, Response, Router} from 'express';
+import {container, singleton} from "tsyringe";
 import {PropertyService} from "../services/property.service";
-import {IPropertyCreate, IPropertyResponse} from '../models/interfaces';
-import {Router} from 'express';
+import {IPropertyCreate} from '../models/interfaces';
 
 @singleton()
 export class PropertyController {

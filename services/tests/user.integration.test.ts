@@ -1,10 +1,10 @@
 import 'reflect-metadata';
-import { container } from 'tsyringe';
+import {container} from 'tsyringe';
 import mongoose from 'mongoose';
-import { MongoMemoryServer } from 'mongodb-memory-server';
-import { UserService } from '../user.service';
-import { User } from '../../models/user.model';
-import { IUserCreate, UserRole } from '../../models/interfaces';
+import {MongoMemoryServer} from 'mongodb-memory-server';
+import {UserService} from '../user.service';
+import {User} from '../../models/user.model';
+import {IUserCreate, UserRole} from '../../models/interfaces';
 import {HttpError} from "../exceptions/http-error";
 
 describe('UserService Integration Tests', () => {
