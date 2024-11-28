@@ -13,6 +13,7 @@ export interface TokenPayload {
 export interface RefreshTokenPayload {
     id: string;
     deviceInfo: string;
+    lastUsed: Date;
 }
 
 export interface AuthRequest extends Request {

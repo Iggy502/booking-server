@@ -59,7 +59,7 @@ export class AuthService {
         };
     }
 
-    async refreshToken(token: string, deviceInfo: string): Promise<string> {
+    async refreshToken(token: string, deviceInfo: string): Promise<{ accessToken: string, refreshToken: string }> {
 
         const decoded: RefreshTokenPayload = this.authUtils.verifyToken(token, true) as RefreshTokenPayload;
 
@@ -85,10 +85,20 @@ export class AuthService {
             throw new UnauthorizedError('Security alert: Please login again');
         }
 
-        user.refreshTokens[tokenIndex].lastUsed = new Date();
+        const refreshToken = this.authUtils.generateRefreshToken(user, deviceInfo);
+        const accessToken = this.authUtils.generateAccessToken(user);
+
+        user.refreshTokens[tokenIndex] = {
+            token: refreshToken,
+            deviceInfo,
+            lastUsed: new Date()
+        }
+
         await user.save();
 
-        return this.authUtils.generateAccessToken(user);
+        return {accessToken, refreshToken};
+
+
     }
 
 

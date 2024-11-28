@@ -1,7 +1,6 @@
 import jwt from 'jsonwebtoken';
 import {IUserDocument} from '../../../models/interfaces';
 import {RefreshTokenPayload, TokenPayload} from '../types/token.type';
-import {UserRole} from "../../../models/interfaces";
 import {UnauthorizedError} from "../exceptions/unauthorized.error";
 
 export class AuthUtils {
@@ -29,9 +28,14 @@ export class AuthUtils {
     }
 
     generateRefreshToken(user: IUserDocument, deviceInfo: string): string {
-        return jwt.sign({
+        const payload: RefreshTokenPayload = {
             id: user.id,
-            deviceInfo
+            deviceInfo,
+            lastUsed: new Date()
+        }
+
+        return jwt.sign({
+            payload
         }, this.refreshSecret, {
             expiresIn: this.refreshExpiresIn,
             algorithm: 'HS256'
@@ -39,8 +43,7 @@ export class AuthUtils {
     }
 
 
-
-    verifyToken(token: string, isRefreshToken: boolean = false): TokenPayload | RefreshTokenPayload{
+    verifyToken(token: string, isRefreshToken: boolean = false): TokenPayload | RefreshTokenPayload {
         try {
             return jwt.verify(token, isRefreshToken ? this.refreshSecret : this.jwtSecret) as TokenPayload | RefreshTokenPayload;
         } catch (error) {

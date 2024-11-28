@@ -102,11 +102,11 @@ export class AuthController {
             // Set new refresh token as HTTP-only cookie
             res.cookie(
                 this.REFRESH_TOKEN_COOKIE_NAME,
-                result,
+                result.refreshToken,
                 this.COOKIE_OPTIONS
             );
 
-            res.json({accessToken: result});
+            res.json({accessToken: result.accessToken});
         } catch (error: any) {
             res.status(401).json({message: error.message});
         }
