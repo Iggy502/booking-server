@@ -4,6 +4,8 @@ import {BookingService} from '../services/booking.service';
 import {IBookingCreate, IBookingResponse, IBookingUpdate} from '../models/interfaces';
 import {Router} from 'express';
 import {autoInjectable, container, singleton} from "tsyringe";
+import {HttpError} from "../services/exceptions/http-error";
+import {json} from "body-parser";
 
 @singleton()
 export class BookingController {
@@ -58,10 +60,13 @@ export class BookingController {
      *               example: Not found
      */
     createBooking = async (req: Request, res: Response) => {
-        const userId = req.query.userId as string;
-        const bookingData: IBookingCreate = req.body;
-        const booking = await this.bookingService.createBooking(userId, bookingData);
-        res.status(201).json(booking);
+        const bookingData: IBookingCreate = {...req.body, checkIn: new Date(req.body.checkIn), checkOut: new Date(req.body.checkOut)};
+        try {
+            const booking = await this.bookingService.createBooking(bookingData);
+            res.status(201).json(booking);
+        } catch (error: any) {
+            res.status(error.status || 500).json({error: error.message});
+        }
 
     };
 
@@ -90,9 +95,49 @@ export class BookingController {
      */
     getBookingById = async (req: Request, res: Response) => {
         const bookingId = req.params.id;
-        const booking = await this.bookingService.getBookingById(bookingId);
-        res.json(booking);
+
+        try {
+            const booking = await this.bookingService.getBookingById(bookingId);
+            res.status(200).json(booking);
+        } catch (error: any) {
+            res.status(error.status).json({error: error.message});
+        }
     };
+
+    //swagger documentation
+    /**
+     * @swagger
+     * /bookings:
+     *   get:
+     *     summary: Get bookings by user id
+     *     description: Get bookings by user id
+     *     tags: [Booking]
+     *     parameters:
+     *       - in: query
+     *         name: userId
+     *         schema:
+     *           type: string
+     *         required: true
+     *         description: User id
+     *     responses:
+     *       200:
+     *         description: Bookings found
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: array
+     *               items:
+     *                 $ref: '#/components/schemas/BookingResponse'
+     */
+    getBookingsByUserId = async (req: Request, res: Response) => {
+        const userId = req.query.userId as string;
+        try {
+            const bookings = await this.bookingService.getBookingsByUserId(userId);
+            res.status(200).json(bookings);
+        } catch (error: any) {
+            res.status(error.status).json({error: error.message});
+        }
+    }
 
     //swagger documentation
     /**
@@ -126,8 +171,13 @@ export class BookingController {
     updateBooking = async (req: Request, res: Response) => {
         const bookingId = req.params.id;
         const bookingData: IBookingUpdate = req.body;
-        const booking = await this.bookingService.updateBooking(bookingId, bookingData);
-        res.json(booking);
+        try {
+            const booking = await this.bookingService.updateBooking(bookingId, bookingData);
+            res.status(200).json(booking);
+        } catch (error: any) {
+            res.status(error.status).json({error: error.message});
+
+        }
     };
 
     //swagger documentation
@@ -155,8 +205,13 @@ export class BookingController {
      */
     deleteBooking = async (req: Request, res: Response) => {
         const bookingId = req.params.id;
-        const booking = await this.bookingService.deleteBooking(bookingId);
-        res.json(booking);
+
+        try {
+            const booking = await this.bookingService.deleteBooking(bookingId);
+            res.status(200).json(booking);
+        } catch (error: any) {
+            res.status(error.status).json({error: error.message});
+        }
     };
 
     routes() {

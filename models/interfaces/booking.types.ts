@@ -1,5 +1,5 @@
 // src/models/types/booking.index.ts
-import { Document, Types } from 'mongoose';
+import {Document, Types} from 'mongoose';
 
 export type BookingStatus = 'pending' | 'confirmed' | 'cancelled';
 
@@ -11,18 +11,19 @@ export interface IBookingBase {
     totalPrice: number;
     status: BookingStatus;
     numberOfGuests: number;
-    createdAt: Date;
-    updatedAt: Date;
 }
 
 export interface IBookingDocument extends IBookingBase, Document {
-    calculateDuration(): number;
-    isPast(): boolean;
+    calculateDuration(endDate: Date, startDate: Date): number;
+    toObject(): IBookingResponse;
+    calculateTotalPrice(): number;
 }
 
-export interface IBookingCreate extends Omit<IBookingBase, 'createdAt' | 'updatedAt' | 'totalPrice' | 'status'> {}
+export interface IBookingCreate extends Omit<IBookingBase, 'totalPrice' | 'status'> {
+}
 
-export interface IBookingUpdate extends Partial<Omit<IBookingBase, 'createdAt' | 'updatedAt' | 'property' | 'guest'>> {}
+export interface IBookingUpdate extends Partial<Omit<IBookingBase, 'property' | 'guest'>> {
+}
 
 
 export interface IBookingResponse extends IBookingBase {
