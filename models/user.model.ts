@@ -29,6 +29,10 @@ const userSchema = new mongoose.Schema<IUserDocument>(
             required: true,
             trim: true,
         },
+        profilePicture: {
+            type: String,  // BASE64
+            required: false
+        },
         password: {
             type: String,
             required: true,

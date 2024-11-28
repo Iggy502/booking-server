@@ -29,6 +29,7 @@ export class AuthMiddleware {
 
             next();
         } catch (error) {
+            console.error('Error:', error);
             res.status(401).json({message: 'Please authenticate'});
         }
     };

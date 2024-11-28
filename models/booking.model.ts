@@ -1,6 +1,6 @@
 // src/models/booking.model.ts
 import mongoose from 'mongoose';
-import {IBookingDocument, IBookingModel, IBookingResponse} from './interfaces';
+import {IBookingDocument, IBookingModel} from './interfaces';
 
 const bookingSchema = new mongoose.Schema<IBookingDocument>(
     {
@@ -41,17 +41,15 @@ const bookingSchema = new mongoose.Schema<IBookingDocument>(
     {
         timestamps: true,
         toObject: {
-            transform: (doc: IBookingDocument, ret) => {
+            transform: (doc, ret) => {
                 ret.id = ret._id;
                 delete ret._id;
                 delete ret.__v;
-                return ret as IBookingResponse;
+                return ret;
             }
         }
     }
 );
-
-
 
 
 export const Booking = mongoose.model<IBookingDocument, IBookingModel>('Booking', bookingSchema);

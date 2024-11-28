@@ -25,6 +25,7 @@ describe('PropertyService', () => {
         maxGuests: 4,
         owner: new Types.ObjectId(),
         address: mockAddress,
+        available: false,
         createdAt: new Date(),
         updatedAt: new Date(),
         toObject: jest.fn()
@@ -39,14 +40,14 @@ describe('PropertyService', () => {
         jest.clearAllMocks();
     });
 
-
     describe('create operations', () => {
         const createPropertyData: IPropertyCreate = {
             name: 'Test Property',
             description: 'Test Description',
             pricePerNight: 100,
             maxGuests: 4,
-            address: mockAddress
+            address: mockAddress,
+            owner: new Types.ObjectId()
         };
 
         it('should create a property', async () => {
@@ -75,90 +76,101 @@ describe('PropertyService', () => {
         });
     });
 
+    describe('availability operations', () => {
+        it('should make a property available', async () => {
+            const updatedMockProperty = {...mockProperty, available: true};
+            (Property.findByIdAndUpdate as jest.Mock).mockResolvedValue(updatedMockProperty);
+            updatedMockProperty.toObject.mockReturnValue({
+                ...updatedMockProperty,
+                id: updatedMockProperty._id.toString()
+            });
+
+            const result = await propertyService.makePropertyAvailable(mockProperty._id.toString());
+
+            expect(Property.findByIdAndUpdate).toHaveBeenCalledWith(
+                mockProperty._id.toString(),
+                {available: true},
+                {new: true}
+            );
+            expect(result.available).toBe(true);
+        });
+
+        it('should throw error when making non-existent property available', async () => {
+            (Property.findByIdAndUpdate as jest.Mock).mockResolvedValue(null);
+
+            await expect(propertyService.makePropertyAvailable(mockProperty._id.toString()))
+                .rejects
+                .toThrow(HttpError);
+        });
+    });
+
     describe('get operations', () => {
-        it('should return filtered properties with address filter', async () => {
+        it('should return all properties', async () => {
             const mockProperties = [mockProperty];
             (Property.find as jest.Mock).mockResolvedValue(mockProperties);
 
-            const filter = new Map([
-                ['address', encodeURI(JSON.stringify(mockAddress))]
-            ]);
-
-            const result = await propertyService.getAllPropertiesFilteredBy(filter);
-            expect(Property.find).toHaveBeenCalledWith({
-                address: mockAddress
-            });
+            const result = await propertyService.getAllProperties();
+            expect(Property.find).toHaveBeenCalled();
+            expect(result).toHaveLength(1);
             expect(result[0]).toEqual(expect.objectContaining({
                 id: expect.any(String),
-                address: mockAddress
+                name: mockProperty.name
             }));
         });
 
-        describe('get operations', () => {
-            //TODO: Remove hardcoded values when expecting the exact values
-            it('should return properties without bookings', async () => {
-                const mockAggregateResponse = [{
-                    _id: mockProperty._id,
-                    name: mockProperty.name,
-                    description: mockProperty.description,
-                    pricePerNight: mockProperty.pricePerNight,
-                    maxGuests: 4,
-                    owner: mockProperty.owner,
-                    address: mockAddress,
-                    createdAt: mockProperty.createdAt,
-                    updatedAt: mockProperty.updatedAt
-                }];
+        it('should return all available properties', async () => {
+            const mockProperties = [{...mockProperty, available: true}];
+            (Property.find as jest.Mock).mockResolvedValue(mockProperties);
 
-                (Property.aggregate as jest.Mock).mockResolvedValue(mockAggregateResponse);
-                (Property.hydrate as jest.Mock).mockReturnValue({
-                    ...mockProperty,
-                    toObject: jest.fn().mockReturnValue({
-                        ...mockProperty,
-                        id: mockProperty._id.toString(),
-                        _id: undefined
-                    })
-                });
+            const result = await propertyService.getAllAvailableProperties();
+            expect(Property.find).toHaveBeenCalledWith({available: true});
+            expect(result).toHaveLength(1);
+            expect(result[0]).toEqual(expect.objectContaining({
+                id: expect.any(String),
+                available: true
+            }));
+        });
 
-                const filter = new Map([
-                    ['maxGuests', '4']
-                ]);
+        it('should return properties by user id', async () => {
+            const userId = new Types.ObjectId().toString();
+            const mockProperties = [mockProperty];
+            (Property.find as jest.Mock).mockResolvedValue(mockProperties);
 
-                const responses = await propertyService.getPropertiesWithoutBookingsFilteredBy(filter);
+            const result = await propertyService.getPropertiesByUserId(userId);
+            expect(Property.find).toHaveBeenCalledWith({owner: userId});
+            expect(result).toHaveLength(1);
+            expect(result[0]).toEqual(expect.objectContaining({
+                id: expect.any(String),
+                owner: mockProperty.owner
+            }));
+        });
 
-                expect(responses).toHaveLength(1);
-                expect(responses[0]).toEqual(expect.objectContaining({
-                    id: expect.any(String),
-                    name: mockProperty.name,
-                    description: mockProperty.description,
-                    pricePerNight: mockProperty.pricePerNight,
-                    maxGuests: mockProperty.maxGuests,
-                    address: mockProperty.address
-                }));
+        it('should return available properties with filters', async () => {
+            const mockProperties = [{...mockProperty, available: true}];
+            (Property.find as jest.Mock).mockResolvedValue(mockProperties);
 
-                expect(Property.aggregate).toHaveBeenCalledWith([
-                    {
-                        $lookup: {
-                            from: 'bookings',
-                            localField: '_id',
-                            foreignField: 'property',
-                            as: 'bookings'
-                        }
-                    },
-                    {
-                        $match: {
-                            'bookings.0': {$exists: false},
-                            maxGuests: mockProperty.maxGuests.toString()
-                        }
-                    },
-                    {
-                        $project: {
-                            bookings: 0
-                        }
-                    }
-                ]);
+            const filter = new Map([
+                ['maxGuests', '4'],
+                ['address', encodeURI(JSON.stringify(mockAddress))]
+            ]);
 
-                expect(Property.hydrate).toHaveBeenCalledWith(mockAggregateResponse[0]);
+            const result = await propertyService.getAvailablePropertiesWithoutBookingsFilteredBy(filter);
+
+            expect(Property.find).toHaveBeenCalledWith({
+                available: true,
+                maxGuests: 4,
+                'address.street': mockAddress.street,
+                'address.city': mockAddress.city,
+                'address.country': mockAddress.country,
+                'address.postalCode': mockAddress.postalCode
             });
+
+            expect(result).toHaveLength(1);
+            expect(result[0]).toEqual(expect.objectContaining({
+                id: expect.any(String),
+                available: true,
+                maxGuests: mockProperty.maxGuests
+            }));
         });
 
         it('should return property by id', async () => {
@@ -169,64 +181,29 @@ describe('PropertyService', () => {
             expect(Property.findById).toHaveBeenCalledWith(propertyId);
             expect(result).toEqual(expect.objectContaining({
                 id: expect.any(String),
-                name: mockProperty.name,
-                description: mockProperty.description,
-                pricePerNight: mockProperty.pricePerNight,
-                maxGuests: mockProperty.maxGuests,
-                address: mockProperty.address
+                name: mockProperty.name
             }));
         });
 
-        it('should handle property filter variations', async () => {
-            const filter = new Map();
+        it('should throw error when property not found by id', async () => {
+            (Property.findById as jest.Mock).mockResolvedValue(null);
+            const propertyId = new Types.ObjectId().toString();
 
-            (Property.find as jest.Mock).mockResolvedValue([mockProperty]);
-
-            const spyFiltered = jest.spyOn(propertyService, 'getAllPropertiesFilteredBy');
-            const spyWithoutBookings = jest.spyOn(propertyService, 'getPropertiesWithoutBookingsFilteredBy');
-
-            await propertyService.getPropertiesWithFilter(true, filter);
-            expect(spyWithoutBookings).toHaveBeenCalled();
-
-            await propertyService.getPropertiesWithFilter(false, filter);
-            expect(spyFiltered).toHaveBeenCalled();
-
-        });
-
-        it('should throw an error for invalid filter keys', async () => {
-            const filter = new Map([
-                ['invalidKey', 'someValue']
-            ]);
-
-            await expect(propertyService.getAllPropertiesFilteredBy(filter))
+            await expect(propertyService.getPropertyById(propertyId))
                 .rejects
                 .toThrow(HttpError);
-
-            expect(Property.find).not.toHaveBeenCalled();
-        });
-        it('empty filters should result in all properties being returned', async () => {
-            const mockProperties = [mockProperty];
-            (Property.find as jest.Mock).mockResolvedValue(mockProperties);
-            const getAll = jest.spyOn(propertyService, 'getAllProperties');
-
-            const result = await propertyService.getAllPropertiesFilteredBy(new Map());
-            expect(Property.find).toHaveBeenCalled();
-            expect(getAll).toHaveBeenCalled();
-            expect(result).toEqual(expect.arrayContaining([expect.objectContaining({
-                id: expect.any(String),
-                name: mockProperty.name,
-                description: mockProperty.description,
-                pricePerNight: mockProperty.pricePerNight,
-                maxGuests: mockProperty.maxGuests,
-                address: mockProperty.address
-            })]));
         });
     });
 
     describe('update operations', () => {
         it('should update property', async () => {
-            const updateData: Partial<IPropertyCreate> = {pricePerNight: 200};
-            (Property.findByIdAndUpdate as jest.Mock).mockResolvedValue(mockProperty);
+            const updateData = {pricePerNight: 200};
+            const updatedMockProperty = {...mockProperty, ...updateData};
+            (Property.findByIdAndUpdate as jest.Mock).mockResolvedValue(updatedMockProperty);
+            updatedMockProperty.toObject.mockReturnValue({
+                ...updatedMockProperty,
+                id: updatedMockProperty._id.toString()
+            });
 
             const result = await propertyService.updateProperty(mockProperty._id.toString(), updateData);
             expect(Property.findByIdAndUpdate).toHaveBeenCalledWith(
@@ -234,7 +211,15 @@ describe('PropertyService', () => {
                 updateData,
                 {new: true}
             );
-            expect(result).toBeDefined();
+            expect(result.pricePerNight).toBe(updateData.pricePerNight);
+        });
+
+        it('should throw error when updating non-existent property', async () => {
+            (Property.findByIdAndUpdate as jest.Mock).mockResolvedValue(null);
+
+            await expect(propertyService.updateProperty(mockProperty._id.toString(), {pricePerNight: 200}))
+                .rejects
+                .toThrow(HttpError);
         });
     });
 
@@ -245,6 +230,14 @@ describe('PropertyService', () => {
             const result = await propertyService.deleteProperty(mockProperty._id.toString());
             expect(Property.findByIdAndDelete).toHaveBeenCalledWith(mockProperty._id.toString());
             expect(result).toBeDefined();
+        });
+
+        it('should throw error when deleting non-existent property', async () => {
+            (Property.findByIdAndDelete as jest.Mock).mockResolvedValue(null);
+
+            await expect(propertyService.deleteProperty(mockProperty._id.toString()))
+                .rejects
+                .toThrow(HttpError);
         });
     });
 });

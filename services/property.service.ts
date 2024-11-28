@@ -1,7 +1,7 @@
 //Property service to handle property operations
 // Objective: Property service to handle property operations
 import {Property} from '../models/property.model';
-import {IPropertyCreate, IPropertyResponse} from '../models/interfaces';
+import {IPropertyCreate, IPropertyDocument, IPropertyResponse, IPropertyUpdate} from '../models/interfaces';
 import {injectable} from 'tsyringe';
 import {HttpError} from "./exceptions/http-error";
 
@@ -10,7 +10,7 @@ export class PropertyService {
 
     async createProperty(propertyData: IPropertyCreate): Promise<IPropertyResponse> {
         const property = await Property.create(propertyData);
-        return <IPropertyResponse>property.toObject();
+        return this.mapToPropertyResponse(property);
     }
 
     async createPropertyWithOwner(userId: string, propertyData: IPropertyCreate): Promise<IPropertyResponse> {
@@ -19,113 +19,107 @@ export class PropertyService {
             owner: userId
         });
 
-        return <IPropertyResponse>property.toObject();
+        return this.mapToPropertyResponse(property);
     }
 
-    async getAllPropertiesFilteredBy(filter: Map<string, string>): Promise<IPropertyResponse[]> {
-        //verify if filter key matches the schema
 
-        if (!filter) {
-            throw new HttpError(400, 'Invalid filter');
+    //make property available
+    async makePropertyAvailable(propertyId: string): Promise<IPropertyResponse> {
+        const property = await Property.findByIdAndUpdate(propertyId, {available: true}, {new: true});
+
+        if (!property) {
+            throw new HttpError(404, 'Property not found');
         }
 
-        if (filter.size > 0) {
-            const schemaKeys = Object.keys(Property.schema.obj);
-            const filterKeys = filter?.keys();
-            const invalidKeys = [...filterKeys].filter(key => !schemaKeys.includes(key));
+        return this.mapToPropertyResponse(property);
+    }
 
-            if (invalidKeys.length) {
-                throw new HttpError(400, `Invalid filter keys: ${invalidKeys.join(', ')}`);
-            }
-
-            let filtersForFind: any = {};
-
-            if (filter.has('address') && filter.get('address')) {
-                filtersForFind.address = JSON.parse(decodeURI(filter.get('address') as string))
-            }
-
-            filter.forEach((value, key) => {
-                if (key !== 'address' && value) {
-                    filtersForFind[key] = value;
-                }
-            });
-
-            const properties = await Property.find(filtersForFind);
-
-            return properties.map(property => <IPropertyResponse>property.toObject());
-        }
-
-        return this.getAllProperties();
-
-
+    private mapToPropertyResponse(property: IPropertyDocument): IPropertyResponse {
+        return <IPropertyResponse>property.toObject();
     }
 
     async getAllProperties(): Promise<IPropertyResponse[]> {
         const properties = await Property.find();
-        return properties.map(property => <IPropertyResponse>property.toObject());
+        return properties.map(property => this.mapToPropertyResponse(property));
     }
 
-    async getPropertiesWithoutBookingsFilteredBy(filter: Map<string, string>): Promise<IPropertyResponse[]> {
+    async getAllAvailableProperties(): Promise<IPropertyResponse[]> {
+        const properties = await Property.find({available: true});
+        return properties.map(property => this.mapToPropertyResponse(property));
+    }
+
+    async getAvailablePropertiesWithoutBookingsFilteredBy(filter: Map<string, string>): Promise<IPropertyResponse[]> {
         const matchConditions: { [key: string]: any } = {
-            'bookings.0': {$exists: false}
+            available: true
         };
 
         filter?.forEach((value, key) => {
             if (key === 'address') {
-                matchConditions['address'] = JSON.parse(decodeURI(value));
+                try {
+                    const addressObj = JSON.parse(decodeURI(value));
+                    // Match all address fields individually for more flexible matching
+                    Object.entries(addressObj).forEach(([addressKey, addressValue]) => {
+                        matchConditions[`address.${addressKey}`] = addressValue;
+                    });
+                } catch (error) {
+                    console.error('Error parsing address:', error);
+                    throw new HttpError(400, 'Invalid address format');
+                }
+            } else if (key === 'maxGuests') {
+                // Convert string to number for numeric comparisons
+                matchConditions[key] = parseInt(value, 10);
+            } else if (key === 'pricePerNight') {
+                // Convert string to number for numeric comparisons
+                matchConditions[key] = parseFloat(value);
             } else {
                 matchConditions[key] = value;
             }
         });
 
-        const properties = await Property.aggregate([
-            {
-                $lookup: {
-                    from: 'bookings',
-                    localField: '_id',
-                    foreignField: 'property',
-                    as: 'bookings'
-                }
-            },
-            {
-                $match: matchConditions
-            },
-            {
-                $project: {
-                    bookings: 0
-                }
-            }
-        ]);
+        console.log('Query conditions:', JSON.stringify(matchConditions, null, 2));
+        const properties = await Property.find(matchConditions);
+        console.log('Found properties:', properties.length);
 
-        return properties.map(property =>
-            Property.hydrate(property).toObject() as IPropertyResponse
-        );
+        return properties.map(property => this.mapToPropertyResponse(property));
     }
 
 
     async getPropertyById(propertyId: string): Promise<IPropertyResponse> {
         const property = await Property.findById(propertyId);
-        return <IPropertyResponse>property?.toObject();
+
+        if (!property) {
+            throw new HttpError(404, 'Property not found');
+        }
+
+        return this.mapToPropertyResponse(property);
     }
 
-    async updateProperty(propertyId: string, propertyData: Partial<IPropertyCreate>): Promise<IPropertyResponse> {
+    async updateProperty(propertyId: string, propertyData: IPropertyUpdate): Promise<IPropertyResponse> {
         const property = await Property.findByIdAndUpdate(propertyId, propertyData, {new: true});
-        return <IPropertyResponse>property?.toObject();
+
+        if (!property) {
+            throw new HttpError(404, 'Property not found');
+        }
+
+        return this.mapToPropertyResponse(property);
     }
 
     async deleteProperty(propertyId: string): Promise<IPropertyResponse> {
         const property = await Property.findByIdAndDelete(propertyId);
-        return <IPropertyResponse>property?.toObject();
+
+        if (!property) {
+            throw new HttpError(404, 'Property not found');
+        }
+
+        return this.mapToPropertyResponse(property);
     }
 
-    async getPropertiesWithFilter(availableOnly: boolean, filters: Map<string, string>): Promise<IPropertyResponse[]> {
-        //if availableOnly is false, return all properties
-        if (!availableOnly) {
-            return this.getAllPropertiesFilteredBy(filters);
-        }
-        //if availableOnly is true
-        return this.getPropertiesWithoutBookingsFilteredBy(filters);
+    async getPropertiesWithFilter(filters: Map<string, string>): Promise<IPropertyResponse[]> {
+        return this.getAvailablePropertiesWithoutBookingsFilteredBy(filters);
+    }
 
-
+    async getPropertiesByUserId(userId: string) {
+        const properties = await Property.find({owner: userId});
+        return properties.map(property => this.mapToPropertyResponse(property));
     }
 }

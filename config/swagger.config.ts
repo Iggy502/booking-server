@@ -51,6 +51,23 @@ const swaggerOptions = {
                         }
                     }
                 },
+                UserUpdate: {
+                    allOf: [
+                        {
+                            $ref: '#/components/schemas/UserCreate'
+                        },
+                        {
+                            type: 'object',
+                            properties: {
+                                profilePicture: {
+                                    type: 'string',
+                                    //base64
+                                    example: 'BASE64'
+                                }
+                            }
+                        }
+                    ]
+                },
                 UserResponse: {
                     type: 'object',
                     properties: {
@@ -73,6 +90,10 @@ const swaggerOptions = {
                         lastName: {
                             type: 'string',
                             example: faker.person.lastName(),
+                        },
+                        profilePicture: {
+                            type: 'string',
+                            example: 'BASE64'
                         }
                     }
 
@@ -159,6 +180,10 @@ const swaggerOptions = {
                                 }
                             }
                         },
+                        owner: {
+                            type: 'string',
+                            example: new mongoose.Types.ObjectId()
+                        },
                         description: {
                             type: 'string',
                             example: faker.lorem.paragraph()
@@ -172,6 +197,22 @@ const swaggerOptions = {
                             example: faker.finance.amount({min: 1, max: 10})
                         }
                     }
+                },
+                PropertyUpdate: {
+                    allOf: [
+                        {
+                            $ref: '#/components/schemas/PropertyCreate'
+                        },
+                        {
+                            type: 'object',
+                            properties: {
+                                available: {
+                                    type: 'boolean',
+                                    example: true
+                                }
+                            }
+                        }
+                    ]
                 },
                 PropertyResponse: {
                     allOf: [

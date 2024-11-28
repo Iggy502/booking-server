@@ -19,6 +19,11 @@ const propertySchema = new mongoose.Schema<IPropertyDocument>(
             type: String,
             required: true,
         },
+        available: {
+            type: Boolean,
+            required: false,
+            default: false,
+        },
         address: {
             street: {type: String, required: true},
             city: {type: String, required: true},

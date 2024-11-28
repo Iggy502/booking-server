@@ -1,18 +1,21 @@
 //Controller for user
 import {Request, Response, Router} from 'express';
 import {UserService} from '../services/user.service';
-import {IUserCreate} from '../models/interfaces';
+import {IUserCreate, UserRole} from '../models/interfaces';
 import {container, singleton} from "tsyringe";
+import {AuthMiddleware} from "../middleware/auth/auth-middleware";
 
 
 @singleton()
 export class UserController {
     userService: UserService;
+    authMiddleware: AuthMiddleware;
     router: Router;
 
     constructor() {
         this.userService = container.resolve(UserService);
         this.router = Router();
+        this.authMiddleware = new AuthMiddleware();
     }
 
     /**
@@ -107,23 +110,24 @@ export class UserController {
      *       content:
      *         application/json:
      *           schema:
-     *             type: object
-     *             properties:
-     *               email:
-     *                 type: string
-     *               name:
-     *                 type: string
-     *               phone:
-     *                 type: string
-     *               password:
-     *                 type: string
+     *            $ref: '#/components/schemas/UserUpdate'
      *     responses:
      *       200:
      *         description: User updated
      *         content:
      *           application/json:
      *             schema:
-     *               $ref: '#/components/schemas/User'
+     *               $ref: '#/components/schemas/UserResponse'
+     *       404:
+     *          description: User not found
+     *          content:
+     *            application/json:
+     *              schema:
+     *              type: object
+     *              properties:
+     *                 error:
+     *                   type: string
+     *                   example: User not found
      *       500:
      *         description: Internal Server Error
      *         content:
@@ -138,8 +142,12 @@ export class UserController {
     updateUser = async (req: Request, res: Response) => {
         const userId = req.params.id;
         const userData: Partial<IUserCreate> = req.body;
-        const user = await this.userService.updateUser(userId, userData);
-        res.json(user);
+        try {
+            const user = await this.userService.updateUser(userId, userData);
+            res.json(user);
+        } catch (error: any) {
+            res.status(error.status).json({error: error.message});
+        }
     };
 
     /**
@@ -161,17 +169,25 @@ export class UserController {
      *         content:
      *           application/json:
      *             schema:
-     *               $ref: '#/components/schemas/User'
-     *
+     *               $ref: '#/components/schemas/UserResponse'
+     *       404:
+     *         description: User not found
+     *         content:
+     *           application/json:
+     *             schema:
+     *             type: object
+     *             properties:
+     *             error:
+     *                type: string
+     *                example: User not found     *
      */
     deleteUser = async (req: Request, res: Response) => {
         try {
             const userId = req.params.id;
             const user = await this.userService.deleteUser(userId);
             res.json(user).status(200);
-        } catch (error) {
-            console.log(error);
-            res.status(500).json({error: 'Internal Server Error'});
+        } catch (error: any) {
+            res.status(error.status).json({error: error.message});
         }
     };
 
@@ -179,7 +195,7 @@ export class UserController {
         this.router.post('/', this.createUser);
         this.router.get('/:id', this.getUserById);
         this.router.put('/:id', this.updateUser);
-        this.router.delete('/:id', this.deleteUser);
+        this.router.delete('/:id', this.authMiddleware.authenticate, this.authMiddleware.requireRoles([UserRole.ADMIN]), this.deleteUser);
         return this.router;
     }
 }

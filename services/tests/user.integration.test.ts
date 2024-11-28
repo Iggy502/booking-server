@@ -72,6 +72,14 @@ describe('UserService Integration Tests', () => {
         expect(result.email).toBe(userData.email);
     });
 
+    it('should handle non-existent user', async () => {
+        const nonExistentId = new mongoose.Types.ObjectId().toString();
+
+        await expect(userService.getUserById(nonExistentId))
+            .rejects
+            .toThrow(new HttpError(404, 'User not found'));
+    });
+
     it('should update a user', async () => {
         const userData: IUserCreate = {
             email: 'test@example.com',
@@ -91,6 +99,14 @@ describe('UserService Integration Tests', () => {
 
         const updatedUser = await User.findById(createdUser.id);
         expect(updatedUser?.firstName).toBe(updateData.firstName);
+    });
+
+    it('should handle non-existent user', async () => {
+        const nonExistentId = new mongoose.Types.ObjectId().toString();
+
+        await expect(userService.updateUser(nonExistentId, { firstName: 'Updated' }))
+            .rejects
+            .toThrow(new HttpError(404, 'User not found'));
     });
 
     it('should delete a user', async () => {

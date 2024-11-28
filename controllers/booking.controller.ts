@@ -57,7 +57,11 @@ export class BookingController {
      *               example: Not found
      */
     createBooking = async (req: Request, res: Response) => {
-        const bookingData: IBookingCreate = {...req.body, checkIn: new Date(req.body.checkIn), checkOut: new Date(req.body.checkOut)};
+        const bookingData: IBookingCreate = {
+            ...req.body,
+            checkIn: new Date(req.body.checkIn),
+            checkOut: new Date(req.body.checkOut)
+        };
         try {
             const booking = await this.bookingService.createBooking(bookingData);
             res.status(201).json(booking);
@@ -101,6 +105,7 @@ export class BookingController {
         }
     };
 
+
     //swagger documentation
     /**
      * @swagger
@@ -135,6 +140,7 @@ export class BookingController {
             res.status(error.status).json({error: error.message});
         }
     }
+
 
     //swagger documentation
     /**

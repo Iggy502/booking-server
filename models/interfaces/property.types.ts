@@ -15,14 +15,18 @@ export interface IPropertyBase {
     address: IAddress;
     pricePerNight: number;
     maxGuests: number;
-    createdAt: Date;
-    updatedAt: Date;
+    available: boolean;
 }
 
 export interface IPropertyDocument extends IPropertyBase, Document {
 }
 
-export interface IPropertyCreate extends Omit<IPropertyBase, 'createdAt' | 'updatedAt' | 'owner'> {
+//property should be made available after creation
+export interface IPropertyCreate extends Omit<IPropertyBase, 'available'> {
+}
+
+export interface IPropertyUpdate extends Partial<IPropertyBase> {
+
 }
 
 export interface IPropertyResponse extends IPropertyBase {
