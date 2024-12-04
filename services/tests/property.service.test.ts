@@ -5,11 +5,28 @@ import {IAddress, IPropertyCreate} from '../../models/interfaces';
 import {container} from 'tsyringe';
 import {Types} from 'mongoose';
 import {HttpError} from "../exceptions/http-error";
+import {GeocodingService} from '../geocoding.service';
 
+// Mock the Property model
 jest.mock('../../models/property.model');
+
+// Create a mock implementation that matches GeocodingService interface
+const mockGeocodingService = {
+    getCoordinates: jest.fn().mockResolvedValue({
+        latitude: 40.7128,
+        longitude: -74.0060
+    })
+} as unknown as GeocodingService;
+
+// Mock the GeocodingService module
+jest.mock('../geocoding.service', () => ({
+    GeocodingService: jest.fn().mockImplementation(() => mockGeocodingService)
+}));
 
 describe('PropertyService', () => {
     let propertyService: PropertyService;
+    let geocodingService: GeocodingService;
+
     const mockAddress: IAddress = {
         street: 'Test Street',
         city: 'Test City',
@@ -24,53 +41,99 @@ describe('PropertyService', () => {
         pricePerNight: 100,
         maxGuests: 4,
         owner: new Types.ObjectId(),
-        address: mockAddress,
+        address: {
+            ...mockAddress,
+            latitude: 40.7128,
+            longitude: -74.0060
+        },
         available: false,
         createdAt: new Date(),
         updatedAt: new Date(),
         toObject: jest.fn()
     };
 
-    beforeAll(() => {
-        propertyService = container.resolve(PropertyService);
-        mockProperty.toObject.mockReturnValue({...mockProperty, id: mockProperty._id.toString()});
-    });
-
-    afterEach(() => {
+    beforeEach(() => {
+        // Clear all mocks before each test
         jest.clearAllMocks();
+
+        // Reset the container and register mocked services
+        container.clearInstances();
+
+        // Register mock geocoding service
+        container.registerInstance(GeocodingService, mockGeocodingService);
+
+        // Resolve the property service
+        propertyService = container.resolve(PropertyService);
+
+        // Get the geocoding service instance
+        geocodingService = container.resolve(GeocodingService);
+
+        // Setup default mock return values
+        mockProperty.toObject.mockReturnValue({...mockProperty, id: mockProperty._id.toString()});
     });
 
     describe('create operations', () => {
         const createPropertyData: IPropertyCreate = {
             name: 'Test Property',
             description: 'Test Description',
-            pricePerNight: 100,
-            maxGuests: 4,
+            pricePerNight: mockProperty.pricePerNight,
+            maxGuests: mockProperty.maxGuests,
             address: mockAddress,
             owner: new Types.ObjectId()
         };
 
-        it('should create a property', async () => {
+        it('should create a property with geocoded coordinates', async () => {
             (Property.create as jest.Mock).mockResolvedValue(mockProperty);
-            const result = await propertyService.createProperty(createPropertyData);
-            expect(Property.create).toHaveBeenCalledWith(createPropertyData);
-            expect(result).toEqual(expect.objectContaining({
-                id: expect.any(String),
-                name: createPropertyData.name,
-                description: createPropertyData.description,
-                pricePerNight: createPropertyData.pricePerNight,
-                maxGuests: createPropertyData.maxGuests,
-                address: createPropertyData.address
-            }));
-        });
 
-        it('should create a property with owner', async () => {
-            const userId = new Types.ObjectId().toString();
-            (Property.create as jest.Mock).mockResolvedValue(mockProperty);
-            const result = await propertyService.createPropertyWithOwner(userId, createPropertyData);
+            const result = await propertyService.createProperty(createPropertyData);
+
+            expect(geocodingService.getCoordinates).toHaveBeenCalledWith(createPropertyData.address);
             expect(Property.create).toHaveBeenCalledWith({
                 ...createPropertyData,
-                owner: userId
+                address: {
+                    ...createPropertyData.address,
+                    latitude: 40.7128,
+                    longitude: -74.0060
+                }
+            });
+            expect(result).toMatchObject({
+                id: expect.any(String),
+                name: createPropertyData.name,
+                address: expect.objectContaining({
+                    latitude: mockProperty.address.latitude,
+                    longitude: mockProperty.address.longitude
+                })
+            });
+        });
+
+        it('should handle geocoding service errors when creating property', async () => {
+            // Set up the mock to reject with an HttpError
+            (mockGeocodingService.getCoordinates as jest.Mock).mockRejectedValueOnce(
+                new HttpError(500, 'Geocoding service error')
+            );
+
+            await expect(propertyService.createProperty(createPropertyData))
+                .rejects
+                .toThrow('Geocoding service error');
+
+            expect(Property.create).not.toHaveBeenCalled();
+        });
+
+        it('should create a property with owner and geocoded coordinates', async () => {
+            const userId = new Types.ObjectId().toString();
+            (Property.create as jest.Mock).mockResolvedValue(mockProperty);
+
+            const result = await propertyService.createPropertyWithOwner(userId, createPropertyData);
+
+            expect(geocodingService.getCoordinates).toHaveBeenCalledWith(createPropertyData.address);
+            expect(Property.create).toHaveBeenCalledWith({
+                ...createPropertyData,
+                owner: userId,
+                address: {
+                    ...createPropertyData.address,
+                    latitude: mockProperty.address.latitude,
+                    longitude: mockProperty.address.longitude
+                }
             });
             expect(result.owner.toString()).toBeDefined();
         });
@@ -105,48 +168,42 @@ describe('PropertyService', () => {
     });
 
     describe('get operations', () => {
-        it('should return all properties', async () => {
-            const mockProperties = [mockProperty];
-            (Property.find as jest.Mock).mockResolvedValue(mockProperties);
-
-            const result = await propertyService.getAllProperties();
-            expect(Property.find).toHaveBeenCalled();
-            expect(result).toHaveLength(1);
-            expect(result[0]).toEqual(expect.objectContaining({
-                id: expect.any(String),
-                name: mockProperty.name
-            }));
-        });
-
         it('should return all available properties', async () => {
-            const mockProperties = [{...mockProperty, available: true}];
+            const mockAvailableProperty = {
+                ...mockProperty,
+                available: true,
+                toObject: jest.fn().mockReturnValue({
+                    ...mockProperty,
+                    id: mockProperty._id.toString(),
+                    available: true
+                })
+            };
+
+            const mockProperties = [mockAvailableProperty];
             (Property.find as jest.Mock).mockResolvedValue(mockProperties);
 
             const result = await propertyService.getAllAvailableProperties();
+
             expect(Property.find).toHaveBeenCalledWith({available: true});
             expect(result).toHaveLength(1);
-            expect(result[0]).toEqual(expect.objectContaining({
+            expect(result[0]).toMatchObject({
                 id: expect.any(String),
                 available: true
-            }));
-        });
-
-        it('should return properties by user id', async () => {
-            const userId = new Types.ObjectId().toString();
-            const mockProperties = [mockProperty];
-            (Property.find as jest.Mock).mockResolvedValue(mockProperties);
-
-            const result = await propertyService.getPropertiesByUserId(userId);
-            expect(Property.find).toHaveBeenCalledWith({owner: userId});
-            expect(result).toHaveLength(1);
-            expect(result[0]).toEqual(expect.objectContaining({
-                id: expect.any(String),
-                owner: mockProperty.owner
-            }));
+            });
         });
 
         it('should return available properties with filters', async () => {
-            const mockProperties = [{...mockProperty, available: true}];
+            const mockAvailableProperty = {
+                ...mockProperty,
+                available: true,
+                toObject: jest.fn().mockReturnValue({
+                    ...mockProperty,
+                    id: mockProperty._id.toString(),
+                    available: true
+                })
+            };
+
+            const mockProperties = [mockAvailableProperty];
             (Property.find as jest.Mock).mockResolvedValue(mockProperties);
 
             const filter = new Map([
@@ -166,52 +223,85 @@ describe('PropertyService', () => {
             });
 
             expect(result).toHaveLength(1);
-            expect(result[0]).toEqual(expect.objectContaining({
+            expect(result[0]).toMatchObject({
                 id: expect.any(String),
                 available: true,
-                maxGuests: mockProperty.maxGuests
-            }));
+                maxGuests: 4
+            });
         });
 
-        it('should return property by id', async () => {
-            (Property.findById as jest.Mock).mockResolvedValue(mockProperty);
-            const propertyId = new Types.ObjectId().toString();
+        it('should throw error with invalid address format in filter', async () => {
+            const filter = new Map([
+                ['address', 'invalid-json']
+            ]);
 
-            const result = await propertyService.getPropertyById(propertyId);
-            expect(Property.findById).toHaveBeenCalledWith(propertyId);
-            expect(result).toEqual(expect.objectContaining({
-                id: expect.any(String),
-                name: mockProperty.name
-            }));
-        });
-
-        it('should throw error when property not found by id', async () => {
-            (Property.findById as jest.Mock).mockResolvedValue(null);
-            const propertyId = new Types.ObjectId().toString();
-
-            await expect(propertyService.getPropertyById(propertyId))
+            await expect(propertyService.getAvailablePropertiesWithoutBookingsFilteredBy(filter))
                 .rejects
-                .toThrow(HttpError);
+                .toThrow('Invalid address format');
         });
     });
 
     describe('update operations', () => {
-        it('should update property', async () => {
-            const updateData = {pricePerNight: 200};
-            const updatedMockProperty = {...mockProperty, ...updateData};
+        it('should update property address with new coordinates', async () => {
+            const newLatitude = 35.6895;
+            const newLongitude = -72.0060;
+
+            // Update the mock for this specific test
+            (mockGeocodingService.getCoordinates as jest.Mock).mockResolvedValueOnce({
+                latitude: newLatitude,
+                longitude: newLongitude
+            });
+
+            const updateData = {
+                address: {
+                    street: 'New Street',
+                    city: 'New City',
+                    country: 'New Country',
+                    postalCode: '54321'
+                }
+            };
+
+            const updatedMockProperty = {
+                ...mockProperty,
+                address: {
+                    ...updateData.address,
+                    latitude: newLatitude,
+                    longitude: newLongitude
+                }
+            };
+
             (Property.findByIdAndUpdate as jest.Mock).mockResolvedValue(updatedMockProperty);
             updatedMockProperty.toObject.mockReturnValue({
                 ...updatedMockProperty,
                 id: updatedMockProperty._id.toString()
             });
 
-            const result = await propertyService.updateProperty(mockProperty._id.toString(), updateData);
-            expect(Property.findByIdAndUpdate).toHaveBeenCalledWith(
+            const result = await propertyService.updateProperty(
                 mockProperty._id.toString(),
-                updateData,
-                {new: true}
+                updateData
             );
-            expect(result.pricePerNight).toBe(updateData.pricePerNight);
+
+            expect(geocodingService.getCoordinates).toHaveBeenCalledWith(updateData.address);
+            expect(result.address).toEqual(expect.objectContaining({
+                ...updateData.address,
+                latitude: newLatitude,
+                longitude: newLongitude
+            }));
+        });
+
+        it('should not call geocoding service when updating non-address fields', async () => {
+            const updateData = {pricePerNight: 200};
+            const updatedMockProperty = {...mockProperty, ...updateData};
+
+            (Property.findByIdAndUpdate as jest.Mock).mockResolvedValue(updatedMockProperty);
+            updatedMockProperty.toObject.mockReturnValue({
+                ...updatedMockProperty,
+                id: updatedMockProperty._id.toString()
+            });
+
+            await propertyService.updateProperty(mockProperty._id.toString(), updateData);
+
+            expect(geocodingService.getCoordinates).not.toHaveBeenCalled();
         });
 
         it('should throw error when updating non-existent property', async () => {

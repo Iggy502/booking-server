@@ -9,6 +9,7 @@ import mongoose from 'mongoose';
 import {swaggerDocs} from '../config/swagger.config';
 import {PropertyController} from "../controllers/property.controller";
 import {AuthController} from "../controllers/auth-controller";
+import 'dotenv/config';
 
 
 const app = express();

@@ -1,29 +1,65 @@
 //Property service to handle property operations
-// Objective: Property service to handle property operations
 import {Property} from '../models/property.model';
 import {IPropertyCreate, IPropertyDocument, IPropertyResponse, IPropertyUpdate} from '../models/interfaces';
-import {injectable} from 'tsyringe';
+import {injectable, inject, container} from 'tsyringe';
 import {HttpError} from "./exceptions/http-error";
+import {GeocodingService} from "./geocoding.service";
+import {Booking} from "../models/booking.model";
 
 @injectable()
 export class PropertyService {
 
+    private geocodingService: GeocodingService;
+
+    constructor() {
+        this.geocodingService = container.resolve(GeocodingService);
+    }
+
     async createProperty(propertyData: IPropertyCreate): Promise<IPropertyResponse> {
-        const property = await Property.create(propertyData);
-        return this.mapToPropertyResponse(property);
+        try {
+            const coordinates = await this.geocodingService.getCoordinates(propertyData.address);
+
+            const propertyWithCoordinates = {
+                ...propertyData,
+                address: {
+                    ...propertyData.address,
+                    ...coordinates
+                }
+            };
+
+            const property = await Property.create(propertyWithCoordinates);
+            return this.mapToPropertyResponse(property);
+        } catch (error) {
+            if (error instanceof HttpError) {
+                throw error;
+            }
+            throw new HttpError(500, 'Failed to create property');
+        }
     }
 
     async createPropertyWithOwner(userId: string, propertyData: IPropertyCreate): Promise<IPropertyResponse> {
-        const property = await Property.create({
-            ...propertyData,
-            owner: userId
-        });
+        try {
+            const coordinates = await this.geocodingService.getCoordinates(propertyData.address);
 
-        return this.mapToPropertyResponse(property);
+            const propertyWithCoordinates = {
+                ...propertyData,
+                owner: userId,
+                address: {
+                    ...propertyData.address,
+                    ...coordinates
+                }
+            };
+
+            const property = await Property.create(propertyWithCoordinates);
+            return this.mapToPropertyResponse(property);
+        } catch (error) {
+            if (error instanceof HttpError) {
+                throw error;
+            }
+            throw new HttpError(500, 'Failed to create property');
+        }
     }
 
-
-    //make property available
     async makePropertyAvailable(propertyId: string): Promise<IPropertyResponse> {
         const property = await Property.findByIdAndUpdate(propertyId, {available: true}, {new: true});
 
@@ -53,11 +89,13 @@ export class PropertyService {
             available: true
         };
 
+        let checkIn: Date | undefined;
+        let checkOut: Date | undefined;
+
         filter?.forEach((value, key) => {
             if (key === 'address') {
                 try {
                     const addressObj = JSON.parse(decodeURI(value));
-                    // Match all address fields individually for more flexible matching
                     Object.entries(addressObj).forEach(([addressKey, addressValue]) => {
                         matchConditions[`address.${addressKey}`] = addressValue;
                     });
@@ -66,23 +104,46 @@ export class PropertyService {
                     throw new HttpError(400, 'Invalid address format');
                 }
             } else if (key === 'maxGuests') {
-                // Convert string to number for numeric comparisons
                 matchConditions[key] = parseInt(value, 10);
             } else if (key === 'pricePerNight') {
-                // Convert string to number for numeric comparisons
                 matchConditions[key] = parseFloat(value);
+            } else if (key === 'checkIn') {
+                checkIn = new Date(value);
+                if (isNaN(checkIn.getTime())) {
+                    throw new HttpError(400, 'Invalid checkIn date format');
+                }
+            } else if (key === 'checkOut') {
+                checkOut = new Date(value);
+                if (isNaN(checkOut.getTime())) {
+                    throw new HttpError(400, 'Invalid checkOut date format');
+                }
             } else {
-                matchConditions[key] = value;
+                console.error('Invalid filter key:', key);
             }
         });
 
-        console.log('Query conditions:', JSON.stringify(matchConditions, null, 2));
-        const properties = await Property.find(matchConditions);
-        console.log('Found properties:', properties.length);
+        if (checkIn && checkOut) {
+            const bookedPropertyIds = await Booking.distinct('property', {
+                status: 'pending',
+                $or: [
+                    {
+                        checkIn: {$lt: checkOut},
+                        checkOut: {$gt: checkIn}
+                    },
+                    {
+                        checkIn: {$gte: checkIn, $lt: checkOut}
+                    }
+                ]
+            });
 
+            if (bookedPropertyIds.length > 0) {
+                matchConditions._id = {$nin: bookedPropertyIds};
+            }
+        }
+
+        const properties = await Property.find(matchConditions);
         return properties.map(property => this.mapToPropertyResponse(property));
     }
-
 
     async getPropertyById(propertyId: string): Promise<IPropertyResponse> {
         const property = await Property.findById(propertyId);
@@ -95,13 +156,34 @@ export class PropertyService {
     }
 
     async updateProperty(propertyId: string, propertyData: IPropertyUpdate): Promise<IPropertyResponse> {
-        const property = await Property.findByIdAndUpdate(propertyId, propertyData, {new: true});
+        try {
+            let updateData = {...propertyData};
 
-        if (!property) {
-            throw new HttpError(404, 'Property not found');
+            // If address is being updated, get new coordinates
+            if (propertyData.address) {
+                const coordinates = await this.geocodingService.getCoordinates(propertyData.address);
+                updateData = {
+                    ...updateData,
+                    address: {
+                        ...propertyData.address,
+                        ...coordinates
+                    }
+                };
+            }
+
+            const property = await Property.findByIdAndUpdate(propertyId, updateData, {new: true});
+
+            if (!property) {
+                throw new HttpError(404, 'Property not found');
+            }
+
+            return this.mapToPropertyResponse(property);
+        } catch (error) {
+            if (error instanceof HttpError) {
+                throw error;
+            }
+            throw new HttpError(500, 'Failed to update property');
         }
-
-        return this.mapToPropertyResponse(property);
     }
 
     async deleteProperty(propertyId: string): Promise<IPropertyResponse> {
@@ -118,7 +200,7 @@ export class PropertyService {
         return this.getAvailablePropertiesWithoutBookingsFilteredBy(filters);
     }
 
-    async getPropertiesByUserId(userId: string) {
+    async getPropertiesByUserId(userId: string): Promise<IPropertyResponse[]> {
         const properties = await Property.find({owner: userId});
         return properties.map(property => this.mapToPropertyResponse(property));
     }

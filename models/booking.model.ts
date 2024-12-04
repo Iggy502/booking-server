@@ -24,7 +24,7 @@ const bookingSchema = new mongoose.Schema<IBookingDocument>(
         },
         totalPrice: {
             type: Number,
-            required: false,
+            required: true,
             min: 0,
         },
         status: {

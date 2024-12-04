@@ -29,6 +29,8 @@ const propertySchema = new mongoose.Schema<IPropertyDocument>(
             city: {type: String, required: true},
             country: {type: String, required: true},
             postalCode: {type: String, required: true},
+            longitude: {type: Number, required: false},
+            latitude: {type: Number, required: false},
         },
         pricePerNight: {
             type: Number,
