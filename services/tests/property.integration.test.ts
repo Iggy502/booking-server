@@ -7,6 +7,7 @@ import {IAddress, IPropertyCreate} from '../../models/interfaces';
 import {container} from 'tsyringe';
 import dotenv from 'dotenv';
 import {Booking} from "../../models/booking.model";
+import assert from "node:assert";
 
 // Load environment variables before all tests
 dotenv.config();
@@ -79,7 +80,7 @@ describe('PropertyService Integration Tests', () => {
             expect(created.address.longitude).toBeDefined();
 
             if (!created.address.latitude || !created.address.longitude) {
-                throw new Error('Coordinates were not generated');
+                fail('Coordinates were not calculated');
             }
 
             // Empire State Building coordinates with some tolerance
