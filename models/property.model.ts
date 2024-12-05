@@ -1,6 +1,7 @@
 // src/models/property.model.ts
 import mongoose from 'mongoose';
 import {IPropertyDocument, IPropertyModel} from './interfaces';
+import {AmenityType, IAmenity} from "./interfaces/amenity.type";
 
 
 const propertySchema = new mongoose.Schema<IPropertyDocument>(
@@ -45,6 +46,32 @@ const propertySchema = new mongoose.Schema<IPropertyDocument>(
         imagePaths: {
             type: [String],
             required: false,
+        },
+        amenities: {
+            type: [{
+                _id: false, // This prevents MongoDB from creating _id for each amenity
+                type: {
+                    type: String,
+                    enum: AmenityType,
+                    required: true,
+                },
+                description: {type: String, required: false},
+                amount: {type: Number, required: false},
+            }],
+            required: false,
+            validate: {
+                validator: (amenities: IAmenity[]) => {
+                    // If no amenities, it's valid
+                    if (!amenities || amenities.length === 0) return true;
+
+                    // Get all types
+                    const types = amenities.map(a => a.type);
+
+                    // Check if the number of unique types equals the total number of types
+                    return new Set(types).size === types.length;
+                },
+                message: 'Duplicate amenity types are not allowed'
+            }
         }
     },
     {
@@ -59,6 +86,12 @@ const propertySchema = new mongoose.Schema<IPropertyDocument>(
         }
     }
 );
+
+// Pre-save middleware to ensure validators run on updates
+propertySchema.pre('findOneAndUpdate', function(next) {
+    this.setOptions({ runValidators: true });
+    next();
+});
 
 export const Property = mongoose.model<IPropertyDocument, IPropertyModel>('Property', propertySchema);
 

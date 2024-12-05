@@ -7,6 +7,7 @@ import {IAddress, IPropertyCreate} from '../../models/interfaces';
 import {container} from 'tsyringe';
 import dotenv from 'dotenv';
 import {Booking} from "../../models/booking.model";
+import {AmenityType, IAmenity} from "../../models/interfaces/amenity.type";
 
 // Load environment variables before all tests
 dotenv.config();
@@ -57,6 +58,69 @@ describe('PropertyService Integration Tests', () => {
     });
 
     describe('create and retrieve operations', () => {
+
+        it('should create property with unique amenities', async () => {
+            const propertyWithAmenities: IPropertyCreate = {
+                ...createPropertyData,
+                amenities: [
+                    {
+                        type: AmenityType.Wifi,
+                        description: 'High-speed internet'
+                    },
+                    {
+                        type: AmenityType.Parking,
+                        description: 'Underground parking',
+                        amount: 2
+                    },
+                    {
+                        type: AmenityType.Pool,
+                        description: 'Outdoor swimming pool'
+                    }
+                ]
+            };
+
+            const created = await propertyService.createProperty(propertyWithAmenities);
+
+            expect(created.amenities).toHaveLength(3);
+            const amenityTypes = created.amenities?.map(a => a.type);
+            expect(amenityTypes).toContain(AmenityType.Wifi);
+            expect(amenityTypes).toContain(AmenityType.Parking);
+            expect(amenityTypes).toContain(AmenityType.Pool);
+
+            // Verify the amenities are saved in database
+            const retrieved = await propertyService.getPropertyById(created.id);
+            expect(retrieved.amenities).toHaveLength(3);
+            expect(retrieved.amenities).toEqual(expect.arrayContaining(created.amenities as IAmenity[]));
+        });
+
+        it('should reject creation with duplicate amenity types', async () => {
+            const propertyWithDuplicateAmenities: IPropertyCreate = {
+                ...createPropertyData,
+                amenities: [
+                    {
+                        type: AmenityType.Wifi,
+                        description: 'First WiFi'
+                    },
+                    {
+                        type: AmenityType.Parking,
+                        description: 'Parking'
+                    },
+                    {
+                        type: AmenityType.Wifi,  // Duplicate type
+                        description: 'Second WiFi'
+                    }
+                ]
+            };
+
+            await expect(propertyService.createProperty(propertyWithDuplicateAmenities))
+                .rejects
+                .toThrow();
+        });
+
+
+
+
+
         it('should create property with geocoded coordinates and retrieve it', async () => {
             const propertyWithExactAddress = {
                 ...createPropertyData,
@@ -196,6 +260,58 @@ describe('PropertyService Integration Tests', () => {
     });
 
     describe('update operations', () => {
+
+        it('should update property amenities while maintaining uniqueness', async () => {
+            // First create a property with some amenities
+            const property = await propertyService.createProperty({
+                ...createPropertyData,
+                amenities: [
+                    {
+                        type: AmenityType.Wifi,
+                        description: 'WiFi'
+                    }
+                ]
+            });
+
+            // Update with new unique amenities
+            const updated = await propertyService.updateProperty(property.id, {
+                amenities: [
+                    {
+                        type: AmenityType.Pool,
+                        description: 'Indoor pool'
+                    },
+                    {
+                        type: AmenityType.Gym,
+                        description: 'Fitness center',
+                        amount: 1
+                    }
+                ]
+            });
+
+            expect(updated.amenities).toHaveLength(2);
+            const updatedTypes = updated.amenities?.map(a => a.type);
+            expect(updatedTypes).toContain(AmenityType.Pool);
+            expect(updatedTypes).toContain(AmenityType.Gym);
+            expect(updatedTypes).not.toContain(AmenityType.Wifi);
+        });
+
+        it('should reject update with duplicate amenity types', async () => {
+            const property = await propertyService.createProperty(createPropertyData);
+
+            await expect(propertyService.updateProperty(property.id, {
+                amenities: [
+                    {
+                        type: AmenityType.Pool,
+                        description: 'Indoor pool'
+                    },
+                    {
+                        type: AmenityType.Pool,  // Duplicate type
+                        description: 'Outdoor pool'
+                    }
+                ]
+            })).rejects.toThrow();
+        });
+
         it('should update property address and recalculate coordinates', async () => {
             const property = await propertyService.createProperty(createPropertyData);
             const originalCoords = {

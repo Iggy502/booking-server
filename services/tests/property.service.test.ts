@@ -311,6 +311,7 @@ describe('PropertyService', () => {
                 .rejects
                 .toThrow(HttpError);
         });
+
     });
 
     describe('delete operations', () => {

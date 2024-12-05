@@ -1,5 +1,6 @@
 // src/models/types/property.index.ts
 import {Document, Types} from 'mongoose';
+import {IAmenity} from "./amenity.type";
 
 export interface IAddress {
     street: string;
@@ -19,6 +20,7 @@ export interface IPropertyBase {
     maxGuests: number;
     available: boolean;
     imagePaths?: string[];
+    amenities?: IAmenity[];
 }
 
 export interface IPropertyDocument extends IPropertyBase, Document {

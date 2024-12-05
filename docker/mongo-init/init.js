@@ -97,6 +97,25 @@ db.properties.insertMany([
         },
         pricePerNight: 250,
         maxGuests: 4,
+        amenities: [
+            {
+                type: 'Pool',
+                description: 'Private infinity pool overlooking the ocean'
+            },
+            {
+                type: 'Wifi',
+                description: 'High-speed fiber internet'
+            },
+            {
+                type: 'Parking',
+                description: 'Private garage',
+                amount: 2
+            },
+            {
+                type: 'Spa',
+                description: 'Private jacuzzi'
+            }
+        ],
         createdAt: new Date(),
         updatedAt: new Date()
     },
@@ -112,6 +131,25 @@ db.properties.insertMany([
         },
         pricePerNight: 180,
         maxGuests: 6,
+        amenities: [
+            {
+                type: 'Wifi',
+                description: 'Satellite internet'
+            },
+            {
+                type: 'Parking',
+                description: 'Outdoor parking',
+                amount: 3
+            },
+            {
+                type: 'RoomService',
+                description: 'Daily housekeeping available'
+            },
+            {
+                type: 'PetFriendly',
+                description: 'Dogs welcome'
+            }
+        ],
         createdAt: new Date(),
         updatedAt: new Date()
     },
@@ -127,6 +165,24 @@ db.properties.insertMany([
         },
         pricePerNight: 200,
         maxGuests: 2,
+        amenities: [
+            {
+                type: 'Wifi',
+                description: 'Gigabit internet'
+            },
+            {
+                type: 'Gym',
+                description: 'Access to building gym'
+            },
+            {
+                type: 'Restaurant',
+                description: 'Ground floor restaurant'
+            },
+            {
+                type: 'Bar',
+                description: 'Rooftop bar access'
+            }
+        ],
         createdAt: new Date(),
         updatedAt: new Date()
     },
@@ -142,6 +198,29 @@ db.properties.insertMany([
         },
         pricePerNight: 350,
         maxGuests: 8,
+        amenities: [
+            {
+                type: 'Pool',
+                description: 'Heated outdoor pool'
+            },
+            {
+                type: 'Wifi',
+                description: 'High-speed internet'
+            },
+            {
+                type: 'Parking',
+                description: 'Large driveway',
+                amount: 4
+            },
+            {
+                type: 'Spa',
+                description: 'Private spa and sauna'
+            },
+            {
+                type: 'RoomService',
+                description: 'Available 24/7'
+            }
+        ],
         createdAt: new Date(),
         updatedAt: new Date()
     },
@@ -157,11 +236,28 @@ db.properties.insertMany([
         },
         pricePerNight: 280,
         maxGuests: 4,
+        amenities: [
+            {
+                type: 'Pool',
+                description: 'Temperature-controlled pool'
+            },
+            {
+                type: 'Wifi',
+                description: 'High-speed internet'
+            },
+            {
+                type: 'Bar',
+                description: 'Private poolside bar'
+            },
+            {
+                type: 'PetFriendly',
+                description: 'Pets welcome with outdoor area'
+            }
+        ],
         createdAt: new Date(),
         updatedAt: new Date()
     }
 ]);
-
 // Get property IDs
 const beachHouseId = db.properties.findOne({name: 'Luxury Beach House'})._id;
 const mountainCabinId = db.properties.findOne({name: 'Mountain Cabin'})._id;

@@ -1,6 +1,8 @@
 import swaggerJsdoc from 'swagger-jsdoc';
 import {faker} from '@faker-js/faker';
 import mongoose from "mongoose";
+import {UserRole} from "../models/interfaces";
+import {AmenityType} from "../models/interfaces/amenity.type";
 
 
 const swaggerOptions = {
@@ -225,8 +227,22 @@ const swaggerOptions = {
                                 id: {
                                     type: 'string',
                                     example: new mongoose.Types.ObjectId()
+                                },
+                                amenities: {
+                                    type: 'array',
+                                    items: {
+                                        type: AmenityType,
+                                        example: AmenityType.Wifi
+                                    }
+                                },
+                                imagePaths: {
+                                    type: 'array',
+                                    items: {
+                                        type: 'string',
+                                        example: 'www.urmom.com'
+                                    }
                                 }
-                            }
+                            },
                         }
                     ]
                 },

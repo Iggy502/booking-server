@@ -1,4 +1,4 @@
-// src/__tests__/integration/image.upload.service.test.ts
+import 'reflect-metadata';
 import {MongoMemoryServer} from 'mongodb-memory-server';
 import mongoose from 'mongoose';
 import {container} from 'tsyringe';
