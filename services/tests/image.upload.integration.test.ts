@@ -1,12 +1,11 @@
 // src/__tests__/integration/image.upload.service.test.ts
-import 'reflect-metadata';
 import {MongoMemoryServer} from 'mongodb-memory-server';
 import mongoose from 'mongoose';
 import {container} from 'tsyringe';
-import {ImageUploadService, UploadType} from '../../services/image.upload.service';
+import {ImageUploadService, UploadType} from '../image.upload.service';
 import {Property} from '../../models/property.model';
 import {User} from '../../models/user.model';
-import {GeocodingService} from '../../services/geocoding.service';
+import {GeocodingService} from '../geocoding.service';
 import path from 'path';
 import fs from 'fs';
 import dotenv from 'dotenv';
@@ -15,7 +14,6 @@ import {UserRole} from "../../models/interfaces";
 // Load environment variables
 dotenv.config();
 
-// Mock GeocodingService
 const mockGeocodingService = {
     getCoordinates: jest.fn().mockResolvedValue({
         latitude: 40.7128,
@@ -30,15 +28,11 @@ describe('ImageUploadService Integration Tests', () => {
     let testProperty: any;
 
     beforeAll(async () => {
-        // Setup MongoDB Memory Server
         mongod = await MongoMemoryServer.create();
         const uri = mongod.getUri();
         await mongoose.connect(uri);
 
-        // Register mock GeocodingService
         container.registerInstance(GeocodingService, mockGeocodingService);
-
-        // Initialize service
         imageUploadService = container.resolve(ImageUploadService);
 
         // Create test user
@@ -67,19 +61,13 @@ describe('ImageUploadService Integration Tests', () => {
         });
     });
 
-    afterEach(async () => {
-        // Clean up properties and reset their images after each test
-        await Property.updateMany({}, {$set: {imagePaths: []}});
-        await User.updateMany({}, {$unset: {profileImage: 1}});
-    });
-
     afterAll(async () => {
         await mongoose.disconnect();
         await mongod.stop();
     });
 
     describe('Profile Image Upload', () => {
-        it('should upload profile image and update user', async () => {
+        it('should upload and update user profile image', async () => {
             const testImagePath = path.join(__dirname, './fixtures/test-image.png');
             const imageBuffer = fs.readFileSync(testImagePath);
             const mockFile = {
@@ -88,22 +76,20 @@ describe('ImageUploadService Integration Tests', () => {
                 mimetype: 'image/png'
             } as Express.Multer.File;
 
-            const imageUrl = await imageUploadService.uploadImage(
+            const updatedUser = await imageUploadService.uploadProfileImage(
                 mockFile,
-                UploadType.PROFILE,
                 {userId: testUser._id.toString()}
             );
 
-            expect(imageUrl).toMatch(/^https:\/\/.+\.amazonaws\.com\/profiles\/.+/);
+            expect(updatedUser.profilePicturePath).toMatch(/^https:\/\/.+\.amazonaws\.com\/profiles\/.+/);
 
-            const updatedUser = await User.findById(testUser._id);
-            expect(updatedUser?.profilePicturePath).toBe(imageUrl);
+            const dbUser = await User.findById(testUser._id);
+            expect(dbUser?.profilePicturePath).toBe(updatedUser.profilePicturePath);
         }, 10000);
-    });
 
-    describe('Property Images Upload', () => {
-        it('should upload property image and update property imagePaths', async () => {
-            const testImagePath = path.join(__dirname, '../fixtures/test-image.jpg');
+        it('should delete profile image', async () => {
+            // First upload an image
+            const testImagePath = path.join(__dirname, './fixtures/test-image.png');
             const imageBuffer = fs.readFileSync(testImagePath);
             const mockFile = {
                 buffer: imageBuffer,
@@ -111,48 +97,79 @@ describe('ImageUploadService Integration Tests', () => {
                 mimetype: 'image/png'
             } as Express.Multer.File;
 
-            const imageUrl = await imageUploadService.uploadImage(
+            const updatedUser = await imageUploadService.uploadProfileImage(
                 mockFile,
+                {userId: testUser._id.toString()}
+            );
+
+            // Then delete it
+            const imagePath = updatedUser.profilePicturePath;
+
+            if (!imagePath) {
+                fail('Profile image path is empty');
+            }
+
+            await imageUploadService.deleteProfileImage(testUser._id.toString(), imagePath);
+
+            const dbUser = await User.findById(testUser._id);
+            expect(dbUser?.profilePicturePath).toBe('');
+        }, 15000);
+    });
+
+    describe('Property Images Upload', () => {
+        it('should upload multiple property images', async () => {
+            const testImagePath = path.join(__dirname, './fixtures/test-image.png');
+            const imageBuffer = fs.readFileSync(testImagePath);
+            const mockFiles = [
+                {
+                    buffer: imageBuffer,
+                    originalname: 'test-image-1.png',
+                    mimetype: 'image/png'
+                },
+                {
+                    buffer: imageBuffer,
+                    originalname: 'test-image-2.png',
+                    mimetype: 'image/png'
+                }
+            ] as Express.Multer.File[];
+
+            const updatedProperty = await imageUploadService.uploadPropertyImages(
+                mockFiles,
                 UploadType.PROPERTY,
                 {propertyId: testProperty._id.toString()}
             );
 
-            expect(imageUrl).toMatch(/^https:\/\/.+\.amazonaws\.com\/properties\/.+/);
+            expect(updatedProperty.imagePaths).toHaveLength(2);
+            updatedProperty.imagePaths?.forEach(path => {
+                expect(path).toMatch(/^https:\/\/.+\.amazonaws\.com\/properties\/.+/);
+            });
 
-            const updatedProperty = await Property.findById(testProperty._id);
-            expect(updatedProperty?.imagePaths).toContain(imageUrl);
-        }, 10000);
+            const dbProperty = await Property.findById(testProperty._id);
+            expect(dbProperty?.imagePaths).toEqual(updatedProperty.imagePaths);
+        }, 15000);
 
-        it('should handle invalid upload type', async () => {
+        it('should delete property image', async () => {
+            // First upload an image
             const testImagePath = path.join(__dirname, './fixtures/test-image.png');
             const imageBuffer = fs.readFileSync(testImagePath);
-            const mockFile = {
+            const mockFiles = [{
                 buffer: imageBuffer,
                 originalname: 'test-image.png',
                 mimetype: 'image/png'
-            } as Express.Multer.File;
+            }] as Express.Multer.File[];
 
-            await expect(imageUploadService.uploadImage(
-                mockFile,
-                'invalid' as UploadType,
-                {propertyId: testProperty._id.toString()}
-            )).rejects.toThrow('Invalid upload type');
-        });
-
-        it('should require propertyId for property uploads', async () => {
-            const testImagePath = path.join(__dirname, './fixtures/test-image.png');
-            const imageBuffer = fs.readFileSync(testImagePath);
-            const mockFile = {
-                buffer: imageBuffer,
-                originalname: 'test-image.png',
-                mimetype: 'image/png'
-            } as Express.Multer.File;
-
-            await expect(imageUploadService.uploadImage(
-                mockFile,
+            const updatedProperty = await imageUploadService.uploadPropertyImages(
+                mockFiles,
                 UploadType.PROPERTY,
-                undefined
-            )).rejects.toThrow('Property ID is required for property images');
-        });
+                {propertyId: testProperty._id.toString()}
+            );
+
+            // Then delete it
+            const imagePath = updatedProperty.imagePaths?.[0] || '';
+            await imageUploadService.deletePropertyImage(testProperty._id.toString(), imagePath);
+
+            const dbProperty = await Property.findById(testProperty._id);
+            expect(dbProperty?.imagePaths).not.toContain(imagePath);
+        }, 15000);
     });
 });

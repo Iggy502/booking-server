@@ -1,3 +1,4 @@
+import 'reflect-metadata';
 import express from 'express';
 import {json} from 'body-parser';
 import {container} from 'tsyringe';
@@ -10,38 +11,38 @@ import {AuthController} from '../controllers/auth-controller';
 import {ImageController} from '../controllers/image.controller';
 import {swaggerDocs} from '../config/swagger.config';
 
-export const createServer = () => {
-    const app = express();
-    app.use(json());
+import dotenv from 'dotenv';
 
-    // Define routes
-    const userController = container.resolve(UserController);
-    app.use('/users', userController.routes());
+dotenv.config();
 
-    const bookingController = container.resolve(BookingController);
-    app.use('/bookings', bookingController.routes());
+const app = express();
+app.use(json());
 
-    const propertyController = container.resolve(PropertyController);
-    app.use('/properties', propertyController.routes());
+// Define routes
+const userController = container.resolve(UserController);
+app.use('/users', userController.routes());
 
-    const authController = container.resolve(AuthController);
-    app.use('/auth', authController.routes());
+const bookingController = container.resolve(BookingController);
+app.use('/bookings', bookingController.routes());
 
-    const imageUploadController = container.resolve(ImageController);
-    app.use('/images', imageUploadController.routes());
+const propertyController = container.resolve(PropertyController);
+app.use('/properties', propertyController.routes());
 
-    app.get('/', (req, res) => {
-        res.send('Hello World!');
-    });
+const authController = container.resolve(AuthController);
+app.use('/auth', authController.routes());
 
-    //swagger documentation
-    app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
+const imageUploadController = container.resolve(ImageController);
+app.use('/images', imageUploadController.routes());
 
-    return app;
-};
+app.get('/', (req, res) => {
+    res.send('Hello World!');
+});
+
+//swagger documentation
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
+
 
 const PORT = 3000;
-const app = createServer();
 app.listen(PORT, async () => {
     console.log(`Server is running on http://localhost:${PORT}`);
     try {

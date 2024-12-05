@@ -1,8 +1,6 @@
 import {container, injectable} from "tsyringe";
-import {S3Client, PutObjectCommand} from "@aws-sdk/client-s3";
-import {Property} from "../models/property.model";
-import {User} from "../models/user.model";
-import {IPropertyResponse, IUserDocument, IUserResponse} from "../models/interfaces";
+import {DeleteObjectCommand, PutObjectCommand, S3Client} from "@aws-sdk/client-s3";
+import {IPropertyResponse, IUserResponse} from "../models/interfaces";
 import {HttpError} from "./exceptions/http-error";
 import {PropertyService} from "./property.service";
 import {UserService} from "./user.service";
@@ -91,6 +89,7 @@ export class ImageUploadService {
         }
     }
 
+
     convertPathToUrl(path: string): string {
         return `https://${this.bucket}.s3.${process.env.AWS_REGION}.amazonaws.com/${path}`;
     }
@@ -111,15 +110,42 @@ export class ImageUploadService {
 
 
     uploadProfileImage = async (file: Express.Multer.File, options: ProfileUploadOptions): Promise<IUserResponse> => {
-        let url = await this.uploadImage(file, UploadType.PROFILE, options);
+        const url = await this.uploadImage(file, UploadType.PROFILE, options);
         return this.userService.updateUser(options.userId, {profilePicturePath: url});
     };
 
 
     uploadPropertyImages = async (files: Express.Multer.File[], PROPERTY: UploadType, options: PropertyUploadOptions): Promise<IPropertyResponse> => {
-        let urls = await Promise.all(files.map(async (file) => {
+        const urls = await Promise.all(files.map(async (file) => {
             return this.uploadImage(file, UploadType.PROPERTY, options);
         }));
         return this.propertyService.updateProperty(options.propertyId, {imagePaths: urls});
     };
+
+    async deletePropertyImage(propertyId: string, imagePathString: string) {
+        return this.deleteImage(imagePathString).then(() => {
+            return this.propertyService.removePropertyImage(propertyId, imagePathString);
+        });
+    }
+
+    async deleteProfileImage(userId: string, imagePathString: string) {
+        return this.deleteImage(imagePathString).then(() => {
+            return this.userService.updateUser(userId, {profilePicturePath: ''});
+        });
+    }
+
+    async deleteImage(path: string) {
+        const command = new DeleteObjectCommand({
+            Bucket: this.bucket,
+            Key: path
+        });
+
+        try {
+            await this.s3Client.send(command);
+        } catch (error) {
+            console.error('Error deleting image from S3:', error);
+            throw new HttpError(500, 'Failed to delete image');
+        }
+    }
+
 }

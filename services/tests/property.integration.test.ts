@@ -7,7 +7,6 @@ import {IAddress, IPropertyCreate} from '../../models/interfaces';
 import {container} from 'tsyringe';
 import dotenv from 'dotenv';
 import {Booking} from "../../models/booking.model";
-import assert from "node:assert";
 
 // Load environment variables before all tests
 dotenv.config();

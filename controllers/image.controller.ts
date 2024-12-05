@@ -10,12 +10,12 @@ import {PropertyService} from "../services/property.service";
 export class ImageController {
     imageUploadService: ImageUploadService;
     authMiddleware: AuthMiddleware;
-    PropertyService: PropertyService;
+    propertyService: PropertyService;
     router: Router;
 
     constructor() {
         this.imageUploadService = container.resolve(ImageUploadService);
-        this.PropertyService = container.resolve(PropertyService);
+        this.propertyService = container.resolve(PropertyService);
         this.authMiddleware = new AuthMiddleware();
         this.router = Router();
     }
@@ -42,11 +42,10 @@ export class ImageController {
                 return;
             }
 
-            const uploadPromises =
+            const propertyWithAddedImages =
                 this.imageUploadService.uploadPropertyImages(files, UploadType.PROPERTY, {propertyId});
 
-
-            // res.status(200).json({urls});
+            res.status(200).json(propertyWithAddedImages);
         } catch (error: any) {
             res.status(500).json({error: error.message});
         }
@@ -66,6 +65,36 @@ export class ImageController {
             res.status(500).json({error: error.message});
         }
     };
+
+    deletePropertyImage = async (req: Request, res: Response): Promise<void> => {
+        try {
+            const {propertyId, imageId} = req.body;
+
+            if (!propertyId || !imageId) {
+                res.status(400).json({error: 'Property ID and image ID are required'});
+                return;
+            }
+            await this.propertyService.removePropertyImage(propertyId, imageId);
+            res.status(200).json({message: 'Image deleted successfully'});
+        } catch (error: any) {
+            res.status(500).json({error: error.message});
+        }
+    }
+
+    deleteProfileImage = async (req: Request, res: Response): Promise<void> => {
+        try {
+            const {userId, imageId} = req.body;
+
+            if (!userId || !imageId) {
+                res.status(400).json({error: 'User ID is required'});
+                return;
+            }
+            await this.imageUploadService.deleteProfileImage(userId, imageId);
+            res.status(200).json({message: 'Profile image deleted successfully'});
+        } catch (error: any) {
+            res.status(500).json({error: error.message});
+        }
+    }
 
     routes() {
         this.router.post(

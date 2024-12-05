@@ -1,8 +1,8 @@
 // src/services/geocoding.service.ts
 import axios from 'axios';
-import { injectable } from 'tsyringe';
-import { IAddress } from '../models/interfaces';
-import { HttpError } from './exceptions/http-error';
+import {injectable} from 'tsyringe';
+import {IAddress} from '../models/interfaces';
+import {HttpError} from './exceptions/http-error';
 
 @injectable()
 export class GeocodingService {

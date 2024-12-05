@@ -1,7 +1,7 @@
 //Property service to handle property operations
 import {Property} from '../models/property.model';
 import {IPropertyCreate, IPropertyDocument, IPropertyResponse, IPropertyUpdate} from '../models/interfaces';
-import {injectable, inject, container} from 'tsyringe';
+import {container, injectable} from 'tsyringe';
 import {HttpError} from "./exceptions/http-error";
 import {GeocodingService} from "./geocoding.service";
 import {Booking} from "../models/booking.model";
@@ -203,5 +203,19 @@ export class PropertyService {
     async getPropertiesByUserId(userId: string): Promise<IPropertyResponse[]> {
         const properties = await Property.find({owner: userId});
         return properties.map(property => this.mapToPropertyResponse(property));
+    }
+
+
+    async removePropertyImage(propertyId: string, imageId: string) {
+
+        const propertyResult = await Property.findByIdAndUpdate(propertyId, {
+            $pull: {imagePaths: imageId}
+        });
+
+        if (!propertyResult) {
+            throw new HttpError(404, 'Property not found');
+        }
+
+        return this.mapToPropertyResponse(propertyResult);
     }
 }
