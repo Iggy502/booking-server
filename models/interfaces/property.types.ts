@@ -18,6 +18,7 @@ export interface IPropertyBase {
     pricePerNight: number;
     maxGuests: number;
     available: boolean;
+    imagePaths?: string[];
 }
 
 export interface IPropertyDocument extends IPropertyBase, Document {

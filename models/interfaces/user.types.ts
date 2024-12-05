@@ -13,7 +13,7 @@ export interface IUserBase {
     lastName: string;
     phone: string;
     password: string;
-    profilePicture?: string;
+    profilePicturePath?: string;
     roles: UserRole[];
 }
 

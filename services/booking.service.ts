@@ -30,6 +30,11 @@ export class BookingService {
             throw new HttpError(400, 'Check out date should be after check in date');
         }
 
+        //check if property is available
+        const bookings = await Booking.find({property: bookingData.property});
+
+
+
         const booking = await Booking.create({
             ...bookingData,
             status: 'pending',

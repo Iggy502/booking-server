@@ -42,6 +42,10 @@ const propertySchema = new mongoose.Schema<IPropertyDocument>(
             required: true,
             min: 1,
         },
+        imagePaths: {
+            type: [String],
+            required: false,
+        }
     },
     {
         timestamps: true,

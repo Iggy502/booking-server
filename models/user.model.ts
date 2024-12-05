@@ -29,7 +29,7 @@ const userSchema = new mongoose.Schema<IUserDocument>(
             required: true,
             trim: true,
         },
-        profilePicture: {
+        profilePicturePath: {
             type: String,  // BASE64
             required: false
         },
