@@ -211,6 +211,13 @@ const swaggerOptions = {
                                 available: {
                                     type: 'boolean',
                                     example: true
+                                },
+                                amenities: {
+                                    type: 'array',
+                                    items: {
+                                        type: AmenityType,
+                                        example: AmenityType.Wifi
+                                    }
                                 }
                             }
                         }
