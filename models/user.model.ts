@@ -58,7 +58,7 @@ const userSchema = new mongoose.Schema<IUserDocument>(
         timestamps: true,
         toObject: {
             transform: (doc, ret) => {
-                ret.id = ret._id;
+                ret.id = ret._id.toString();
                 delete ret._id;
                 delete ret.createdAt;
                 delete ret.updatedAt;
@@ -102,8 +102,6 @@ userSchema.methods.comparePassword = async function (candidatePassword: string):
 
     const user: IUserDocument = await User.findById(this._id).select({password: 1, roles: 1});
     if (!user?.password) throw new Error('Password not found');
-
-    var test = UserRole.TEST;
 
     if (user.roles.includes(UserRole.TEST)) return candidatePassword === user.password;
     return bcrypt.compare(candidatePassword, user.password);

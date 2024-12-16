@@ -135,7 +135,7 @@ describe('PropertyService', () => {
                     longitude: mockProperty.address.longitude
                 }
             });
-            expect(result.owner.toString()).toBeDefined();
+            expect(result.owner).toBeDefined();
         });
     });
 

@@ -154,6 +154,28 @@ const swaggerOptions = {
                         }
                     ]
                 },
+                BookingResponseMultiple: {
+                    type: 'array',
+                    items: {
+                        $ref: '#/components/schemas/BookingResponse'
+                    },
+                    example: [
+                        {
+                            id: new mongoose.Types.ObjectId(),
+                            checkIn: faker.date.recent().toISOString(),
+                            checkOut: faker.date.future().toISOString(),
+                            status: 'pending',
+                            totalPrice: faker.finance.amount({min: 100, max: 1000})
+                        },
+                        {
+                            id: new mongoose.Types.ObjectId(),
+                            checkIn: faker.date.recent().toISOString(),
+                            checkOut: faker.date.future().toISOString(),
+                            status: 'pending',
+                            totalPrice: faker.finance.amount({min: 100, max: 1000})
+                        }
+                    ]
+                },
                 PropertyCreate: {
                     type: 'object',
                     properties: {

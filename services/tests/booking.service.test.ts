@@ -172,6 +172,48 @@ describe('BookingService', () => {
         });
     });
 
+    describe('getBookingsWithinDateRange', () => {
+        it('should successfully get bookings within a date range', async () => {
+            const startDate = new Date('2024-12-01');
+            const endDate = new Date('2024-12-31');
+            const mockBookings = [mockBooking];
+
+            (Booking.find as jest.Mock).mockResolvedValue(mockBookings);
+
+            const result = await bookingService.getBookingsWithinDateRange(startDate, endDate);
+
+            expect(Booking.find).toHaveBeenCalledWith({
+                checkIn: {$gte: startDate},
+                checkOut: {$lte: endDate}
+            });
+            expect(result).toEqual(mockBookings.map(booking => expect.objectContaining({
+                id: booking._id.toString(),
+                property: booking.property,
+                guest: booking.guest,
+                checkIn: booking.checkIn,
+                checkOut: booking.checkOut,
+                totalPrice: booking.totalPrice,
+                status: booking.status,
+                numberOfGuests: booking.numberOfGuests
+            })));
+        });
+
+        it('should return an empty array if no bookings are found within the date range', async () => {
+            const startDate = new Date('2024-12-01');
+            const endDate = new Date('2024-12-31');
+
+            (Booking.find as jest.Mock).mockResolvedValue([]);
+
+            const result = await bookingService.getBookingsWithinDateRange(startDate, endDate);
+
+            expect(Booking.find).toHaveBeenCalledWith({
+                checkIn: {$gte: startDate},
+                checkOut: {$lte: endDate}
+            });
+            expect(result).toEqual([]);
+        });
+    });
+
     describe('getBookingsByUserId', () => {
         it('should successfully get bookings by user id', async () => {
             const mockBookings = [mockBooking];
@@ -206,10 +248,15 @@ describe('BookingService', () => {
                 ...updateBookingData,
                 totalPrice: bookingService.calculateTotalPrice(mockProperty.pricePerNight, updateBookingData.checkIn, updateBookingData.checkOut),
             };
+
+            (Booking.findById as jest.Mock).mockResolvedValue(mockBooking);
+
             (Booking.findByIdAndUpdate as jest.Mock).mockResolvedValue({
                 ...updatedBooking,
                 toObject: () => updatedBooking
             });
+
+            (Property.findById as jest.Mock).mockResolvedValue(mockProperty);
 
             const result = await bookingService.updateBooking(mockBooking._id.toString(), updateBookingData);
 
@@ -218,7 +265,7 @@ describe('BookingService', () => {
         });
 
         it('should throw an error if booking is not found', async () => {
-            (Booking.findByIdAndUpdate as jest.Mock).mockResolvedValue(null);
+            (Booking.findById as jest.Mock).mockResolvedValue(null);
 
             await expect(bookingService.updateBooking(mockBooking._id.toString(), updateBookingData))
                 .rejects

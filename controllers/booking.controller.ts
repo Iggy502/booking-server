@@ -141,6 +141,50 @@ export class BookingController {
         }
     }
 
+    //swagger documentation
+    /**
+     * @swagger
+     * /bookings:
+     *   get:
+     *     summary: Get bookings within date range
+     *     description: Get bookings within date range
+     *     tags: [Booking]
+     *     parameters:
+     *       - in: query
+     *         name: startDate
+     *         schema:
+     *           type: string
+     *         required: true
+     *         description: Start date
+     *       - in: query
+     *         name: endDate
+     *         schema:
+     *           type: string
+     *         required: true
+     *         description: End date
+     *     responses:
+     *        200:
+     *           content:
+     *            application/json:
+     *               schema:
+     *                $ref: '#/components/schemas/BookingResponseMultiple'
+     */
+    getBookingsWithinDateRange = async (req: Request, res: Response) => {
+
+        if (!req.query.startDate || !req.query.endDate) {
+            res.status(400).json({error: 'Please provide start date and end date'});
+        }
+
+        const startDate = new Date(req.query.startDate as string);
+        const endDate = new Date(req.query.endDate as string);
+        try {
+            const bookings = await this.bookingService.getBookingsWithinDateRange(startDate, endDate);
+            res.status(200).json(bookings);
+        } catch (error: any) {
+            res.status(error.status).json({error: error.message});
+        }
+    }
+
 
     //swagger documentation
     /**

@@ -85,7 +85,7 @@ export class ImageUploadService {
             return imageUrl;
         } catch (error) {
             console.error('Error uploading to S3:', error);
-            throw new Error('Failed to upload image');
+            throw new HttpError(500, 'Failed to upload image');
         }
     }
 
