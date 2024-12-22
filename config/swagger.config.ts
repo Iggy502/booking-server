@@ -183,6 +183,10 @@ const swaggerOptions = {
                             type: 'string',
                             example: `Jerre's Paradise`
                         },
+                        available: {
+                            type: 'boolean',
+                            example: true
+                        },
                         address: {
                             type: 'object',
                             properties: {
@@ -230,10 +234,6 @@ const swaggerOptions = {
                         {
                             type: 'object',
                             properties: {
-                                available: {
-                                    type: 'boolean',
-                                    example: true
-                                },
                                 amenities: {
                                     type: 'array',
                                     items: {

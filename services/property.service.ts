@@ -5,6 +5,7 @@ import {container, injectable} from 'tsyringe';
 import {HttpError} from "./exceptions/http-error";
 import {GeocodingService} from "./geocoding.service";
 import {Booking} from "../models/booking.model";
+import {exists} from "node:fs";
 
 @injectable()
 export class PropertyService {
@@ -82,6 +83,27 @@ export class PropertyService {
     async getAllAvailableProperties(): Promise<IPropertyResponse[]> {
         const properties = await Property.find({available: true});
         return properties.map(property => this.mapToPropertyResponse(property));
+    }
+
+    async verifyNoOverlappingBookings(propertyId: string, checkIn: Date, checkOut: Date): Promise<boolean> {
+
+        if (!Property.exists({_id: propertyId})) {
+            throw new HttpError(404, 'Property not found');
+        }
+
+        return !(await Booking.exists({
+            property: propertyId,
+            status: 'pending',
+            $or: [
+                {
+                    checkIn: {$lt: checkOut},
+                    checkOut: {$gt: checkIn}
+                },
+                {
+                    checkIn: {$gte: checkIn, $lt: checkOut}
+                }
+            ]
+        }));
     }
 
     async getAvailablePropertiesWithoutBookingsFilteredBy(filter: Map<string, string>): Promise<IPropertyResponse[]> {

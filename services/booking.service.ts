@@ -69,7 +69,16 @@ export class BookingService {
         }
 
         return this.mapToBookingResponse(booking);
+    }
 
+    async getBookingsByPropertyId(propertyId: string): Promise<IBookingResponse[]> {
+        const bookings: IBookingDocument[] = await Booking.find({property: propertyId});
+        return bookings.map(booking => this.mapToBookingResponse(booking));
+    }
+
+    async getBookingsByPropertyIds(propertyIds: string[]): Promise<IBookingResponse[]> {
+        const bookings: IBookingDocument[] = await Booking.find({property: {$in: propertyIds}});
+        return bookings.map(booking => this.mapToBookingResponse(booking));
     }
 
     async getBookingsByUserId(userId: string): Promise<IBookingResponse[]> {
