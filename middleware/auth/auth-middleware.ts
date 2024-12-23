@@ -4,6 +4,7 @@ import {AuthRequest, TokenPayload} from './types/token.type';
 import {UnauthorizedError} from './exceptions/unauthorized.error';
 import {AuthUtils} from './utils/auth.utils';
 import {singleton} from 'tsyringe';
+import {Unauthorized} from "http-errors";
 
 @singleton()
 export class AuthMiddleware {
@@ -17,20 +18,20 @@ export class AuthMiddleware {
         try {
             const authHeader = req.header('Authorization');
             const token = authHeader?.replace('Bearer ', '');
-            console.log('Authorization Header:', authHeader);
-            console.log('Token:', token);
 
             if (!token) {
-                throw new UnauthorizedError('No token provided');
+                throw Unauthorized('No token provided');
             }
 
-            // Attach user to request for subsequent middleware
-            req.user = this.authUtils.verifyToken(token) as TokenPayload;
-
-            next();
-        } catch (error) {
-            console.error('Error:', error);
-            res.status(401).json({message: 'Please authenticate'});
+            try {
+                req.user = this.authUtils.verifyToken(token) as TokenPayload;
+                next();
+            } catch (tokenError) {
+                throw Unauthorized('Token expired or invalid');
+            }
+        } catch (error: any) {
+            console.error('Authentication error:', error);
+            next(error);
         }
     };
 

@@ -108,6 +108,70 @@ export class PropertyController {
     };
 
 
+    /**
+     * @swagger
+     * /properties/{propertyId}/availability:
+     *   get:
+     *     summary: Check property availability for given dates
+     *     description: Check if a property is available for the specified start and end dates
+     *     tags: [Property]
+     *     parameters:
+     *       - in: path
+     *         name: propertyId
+     *         schema:
+     *           type: string
+     *         required: true
+     *         description: Property ID
+     *       - in: query
+     *         name: startDate
+     *         schema:
+     *           type: string
+     *           format: date
+     *         required: true
+     *         description: Start date
+     *       - in: query
+     *         name: endDate
+     *         schema:
+     *           type: string
+     *           format: date
+     *         required: true
+     *         description: End date
+     *     responses:
+     *       200:
+     *         description: Availability status
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: object
+     *               properties:
+     *                 available:
+     *                   type: boolean
+     *       400:
+     *         description: Start and end date are required
+     *         content:
+     *           application/json:
+     *             schema:
+     *               $ref: '#/components/schemas/ErrorResponse'
+     *       404:
+     *         description: Property not found
+     *         content:
+     *           application/json:
+     *             schema:
+     *               $ref: '#/components/schemas/ErrorResponse'
+     */
+    checkAvailabilityForPropertyStartAndEndDate = async (req: Request, res: Response) => {
+        const propertyId = req.params.propertyId;
+        const {startDate, endDate} = req.query;
+
+        if (!startDate || !endDate) {
+            res.status(400).json({error: 'Start and end date are required'});
+            return;
+        }
+
+        const isAvailable = await this.propertyService.verifyNoOverlappingBookings(propertyId, new Date(startDate as string), new Date(endDate as string));
+        res.status(200).json({available: isAvailable});
+    }
+
     //swagger
     /**
      * @swagger

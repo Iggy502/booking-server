@@ -1,13 +1,17 @@
 import {Request, Response, Router} from 'express';
 import {container, singleton} from "tsyringe";
 import {AuthService} from '../services/auth.service';
-import {AuthRequest} from '../middleware/auth/types/token.type';
+import {AuthRequest, TokenPayload} from '../middleware/auth/types/token.type';
 import {AuthMiddleware} from '../middleware/auth/auth-middleware';
+import {HttpError} from "../services/exceptions/http-error";
+import {BadRequest} from "http-errors";
+import {AuthUtils} from "../middleware/auth/utils/auth.utils";
 
 @singleton()
 export class AuthController {
     authService: AuthService;
     authMiddleware: AuthMiddleware;
+    authUtils: AuthUtils;
     router: Router;
 
     // Cookie configuration
@@ -24,6 +28,7 @@ export class AuthController {
         this.authService = container.resolve(AuthService);
         this.router = Router();
         this.authMiddleware = new AuthMiddleware();
+        this.authUtils = new AuthUtils();
     }
 
     /**
@@ -52,6 +57,7 @@ export class AuthController {
      */
     login = async (req: Request, res: Response) => {
         try {
+            console.log("Login request received");
             const {email, password} = req.body;
             const deviceInfo = req.headers['user-agent'] || 'unknown';
             const result = await this.authService.login(email, password, deviceInfo);
@@ -131,15 +137,16 @@ export class AuthController {
                 await this.authService.logout(req.user!.id, refreshToken);
             }
 
+        } catch (error) {
+            console.error("Error logging out", error);
+        } finally {
             // Clear the refresh token cookie
             res.clearCookie(this.REFRESH_TOKEN_COOKIE_NAME, {
                 ...this.COOKIE_OPTIONS,
                 maxAge: 0
             });
-
-            res.json({message: 'Logged out successfully'});
-        } catch (error: any) {
-            res.status(401).json({message: error.message});
+            //Client doesn't need to know if the logout was successful
+            res.status(200).json({message: 'Logged out successfully'});
         }
     };
 
