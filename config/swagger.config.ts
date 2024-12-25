@@ -360,6 +360,10 @@ const swaggerOptions = {
                         message: {
                             type: 'string',
                             example: 'Error message'
+                        },
+                        status: {
+                            type: 'number',
+                            example: 404
                         }
                     }
                 }
