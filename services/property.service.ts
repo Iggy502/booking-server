@@ -6,6 +6,7 @@ import {HttpError} from "./exceptions/http-error";
 import {GeocodingService} from "./geocoding.service";
 import {Booking} from "../models/booking.model";
 import {exists} from "node:fs";
+import {BadRequest, InternalServerError, NotFound} from "http-errors";
 
 @injectable()
 export class PropertyService {
@@ -31,7 +32,7 @@ export class PropertyService {
             const property = await Property.create(propertyWithCoordinates);
             return this.mapToPropertyResponse(property);
         } catch (error) {
-            throw new HttpError(500, 'Failed to create property');
+            throw InternalServerError('Failed to create property');
         }
     }
 
@@ -54,7 +55,7 @@ export class PropertyService {
             if (error instanceof HttpError) {
                 throw error;
             }
-            throw new HttpError(500, 'Failed to create property');
+            throw new InternalServerError('Failed to create property');
         }
     }
 
@@ -62,7 +63,7 @@ export class PropertyService {
         const property = await Property.findByIdAndUpdate(propertyId, {available: true}, {new: true});
 
         if (!property) {
-            throw new HttpError(404, 'Property not found');
+            throw new NotFound('Property not found');
         }
 
         return this.mapToPropertyResponse(property);
@@ -85,7 +86,7 @@ export class PropertyService {
     async verifyNoOverlappingBookings(propertyId: string, checkIn: Date, checkOut: Date): Promise<boolean> {
 
         if (!Property.exists({_id: propertyId})) {
-            throw new HttpError(404, 'Property not found');
+            throw NotFound('Property not found');
         }
 
         return !(await Booking.exists({
@@ -120,7 +121,7 @@ export class PropertyService {
                     });
                 } catch (error) {
                     console.error('Error parsing address:', error);
-                    throw new HttpError(400, 'Invalid address format');
+                    throw new NotFound('Invalid address format');
                 }
             } else if (key === 'maxGuests') {
                 matchConditions[key] = parseInt(value, 10);
@@ -129,12 +130,12 @@ export class PropertyService {
             } else if (key === 'checkIn') {
                 checkIn = new Date(value);
                 if (isNaN(checkIn.getTime())) {
-                    throw new HttpError(400, 'Invalid checkIn date format');
+                    throw BadRequest('Invalid checkIn date format');
                 }
             } else if (key === 'checkOut') {
                 checkOut = new Date(value);
                 if (isNaN(checkOut.getTime())) {
-                    throw new HttpError(400, 'Invalid checkOut date format');
+                    throw BadRequest('Invalid checkOut date format');
                 }
             } else {
                 console.error('Invalid filter key:', key);
@@ -168,7 +169,7 @@ export class PropertyService {
         const property = await Property.findById(propertyId);
 
         if (!property) {
-            throw new HttpError(404, 'Property not found');
+            throw new NotFound('Property not found');
         }
 
         return this.mapToPropertyResponse(property);
@@ -193,7 +194,7 @@ export class PropertyService {
             const property = await Property.findByIdAndUpdate(propertyId, updateData, {new: true});
 
             if (!property) {
-                throw new HttpError(404, 'Property not found');
+                throw new NotFound('Property not found');
             }
 
             return this.mapToPropertyResponse(property);
@@ -201,7 +202,7 @@ export class PropertyService {
             if (error instanceof HttpError) {
                 throw error;
             }
-            throw new HttpError(500, 'Failed to update property');
+            throw new InternalServerError('Failed to update property');
         }
     }
 
@@ -209,7 +210,7 @@ export class PropertyService {
         const property = await Property.findByIdAndDelete(propertyId);
 
         if (!property) {
-            throw new HttpError(404, 'Property not found');
+            throw new NotFound('Property not found');
         }
 
         return this.mapToPropertyResponse(property);
@@ -232,7 +233,7 @@ export class PropertyService {
         });
 
         if (!propertyResult) {
-            throw new HttpError(404, 'Property not found');
+            throw new NotFound('Property not found');
         }
 
         return this.mapToPropertyResponse(propertyResult);

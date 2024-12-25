@@ -5,6 +5,7 @@ import {UnauthorizedError} from './exceptions/unauthorized.error';
 import {AuthUtils} from './utils/auth.utils';
 import {singleton} from 'tsyringe';
 import {Unauthorized} from "http-errors";
+import {UserRole} from "../../models/interfaces";
 
 @singleton()
 export class AuthMiddleware {
@@ -35,7 +36,7 @@ export class AuthMiddleware {
         }
     };
 
-    requireRoles = (roles: string[]) => {
+    requireRoles = (roles: string[], adminOverride = false) => {
         return async (req: AuthRequest, res: Response, next: NextFunction) => {
             try {
                 if (!req.user?.roles) {
@@ -44,7 +45,7 @@ export class AuthMiddleware {
 
                 const hasRequiredRole = req.user.roles.some(userRole =>
                     roles.includes(userRole)
-                );
+                ) || (adminOverride && req.user.roles.includes(UserRole.ADMIN));
 
                 if (!hasRequiredRole) {
                     throw new UnauthorizedError('Insufficient permissions');
@@ -56,4 +57,5 @@ export class AuthMiddleware {
             }
         };
     };
+
 }

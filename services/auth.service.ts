@@ -4,6 +4,7 @@ import {User} from "../models/user.model";
 import {IUserResponse} from "../models/interfaces";
 import {UnauthorizedError} from "../middleware/auth/exceptions/unauthorized.error";
 import {RefreshTokenPayload} from "../middleware/auth/types/token.type";
+import {InternalServerError, Unauthorized} from "http-errors";
 
 interface LoginResponse {
     user: IUserResponse;
@@ -24,13 +25,13 @@ export class AuthService {
         const user = await User.findOne({email}).select('+password');
 
         if (!user) {
-            throw new UnauthorizedError('Invalid credentials');
+            throw Unauthorized('Invalid credentials');
         }
 
         const isPasswordValid = await user.comparePassword(password);
 
         if (!isPasswordValid) {
-            throw new UnauthorizedError(`Invalid credentials comparing password ${password} and ${user.password}`);
+            throw Unauthorized('Invalid credentials');
         }
 
         // Clean up old sessions if limit reached
@@ -69,20 +70,20 @@ export class AuthService {
         });
 
         if (!user) {
-            throw new UnauthorizedError('Invalid refresh token');
+            throw Unauthorized('Invalid refresh token');
         }
 
         // Find and update the session's last used time
         const tokenIndex = user.refreshTokens.findIndex(t => t.token === token);
         if (tokenIndex === -1) {
-            throw new UnauthorizedError('Invalid refresh token');
+            throw Unauthorized('Invalid refresh token');
         }
 
         // Verify device info matches
         if (user.refreshTokens[tokenIndex].deviceInfo !== deviceInfo) {
             // Potential token theft, invalidate all sessions
             await this.logoutAll(user.id);
-            throw new UnauthorizedError('Security alert: Please login again');
+            throw Unauthorized('Invalid refresh token');
         }
 
         const refreshToken = this.authUtils.generateRefreshToken(user, deviceInfo);
@@ -97,7 +98,6 @@ export class AuthService {
         await user.save();
 
         return {accessToken, refreshToken};
-
 
     }
 
@@ -115,10 +115,14 @@ export class AuthService {
     }
 
     async listSessions(userId: string) {
-        const user = await User.findById(userId);
-        return user?.refreshTokens.map(session => ({
-            deviceInfo: session.deviceInfo,
-            lastUsed: session.lastUsed
-        }));
+        try {
+            const user = await User.findById(userId);
+            return user?.refreshTokens.map(session => ({
+                deviceInfo: session.deviceInfo,
+                lastUsed: session.lastUsed
+            }));
+        } catch (error) {
+            throw InternalServerError('Failed to list sessions');
+        }
     }
 }

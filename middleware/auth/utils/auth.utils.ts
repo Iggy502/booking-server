@@ -6,7 +6,7 @@ import {UnauthorizedError} from "../exceptions/unauthorized.error";
 export class AuthUtils {
     constructor(
         private readonly jwtSecret: string = process.env.JWT_SECRET || 'your-secret-key',
-        private readonly jwtExpiresIn: string = '15m',
+        private readonly jwtExpiresIn: string = '1m',
         private readonly refreshSecret: string = process.env.REFRESH_SECRET || 'your-refresh-secret',
         private readonly refreshExpiresIn: string = '7d'
     ) {

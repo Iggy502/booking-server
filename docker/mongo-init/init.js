@@ -86,7 +86,7 @@ const guest2Id = db.users.findOne({email: 'guest2@example.com'})._id;
 db.properties.insertMany([
     {
         name: 'Luxury Canal House',
-        owner: host1Id,
+        owner: adminId,
         description: 'Beautiful canalside property in historic Bruges',
         address: {
             street: 'Dijver 12',
@@ -116,7 +116,7 @@ db.properties.insertMany([
     },
     {
         name: 'Ardennes Cabin',
-        owner: host1Id,
+        owner: adminId,
         description: 'Cozy cabin in the Belgian Ardennes',
         address: {
             street: 'Rue de la Forêt 45',
@@ -146,7 +146,7 @@ db.properties.insertMany([
     },
     {
         name: 'Brussels City Apartment',
-        owner: host2Id,
+        owner: adminId,
         description: 'Modern apartment near Grand Place',
         address: {
             street: 'Rue du Marché aux Herbes 78',

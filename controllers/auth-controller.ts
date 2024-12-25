@@ -3,8 +3,6 @@ import {container, singleton} from "tsyringe";
 import {AuthService} from '../services/auth.service';
 import {AuthRequest, TokenPayload} from '../middleware/auth/types/token.type';
 import {AuthMiddleware} from '../middleware/auth/auth-middleware';
-import {HttpError} from "../services/exceptions/http-error";
-import {BadRequest} from "http-errors";
 import {AuthUtils} from "../middleware/auth/utils/auth.utils";
 
 @singleton()
@@ -71,7 +69,7 @@ export class AuthController {
 
             res.json({accessToken: result.accessToken});
         } catch (error: any) {
-            res.status(401).json({message: error.message});
+            res.status(error.status || 401).json(error);
         }
     };
 
@@ -113,7 +111,7 @@ export class AuthController {
 
             res.json({accessToken: result.accessToken});
         } catch (error: any) {
-            res.status(401).json({message: error.message});
+            res.status(error.status || 401).json(error);
         }
     };
 
@@ -175,7 +173,7 @@ export class AuthController {
 
             res.json({message: 'Logged out from all devices'});
         } catch (error: any) {
-            res.status(401).json({message: error.message});
+            res.status(error.status || 500).json(error);
         }
     };
 
@@ -209,7 +207,7 @@ export class AuthController {
             const sessions = await this.authService.listSessions(req.user!.id);
             res.json(sessions);
         } catch (error: any) {
-            res.status(401).json({message: error.message});
+            res.status(error.status || 500).json(error);
         }
     };
 

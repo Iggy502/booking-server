@@ -6,6 +6,7 @@ import {Property} from "../models/property.model";
 import {injectable} from "tsyringe";
 import {HttpError} from "./exceptions/http-error";
 import {User} from "../models/user.model";
+import {BadRequest, InternalServerError, NotFound} from "http-errors";
 
 @injectable()
 export class BookingService {
@@ -20,12 +21,12 @@ export class BookingService {
         const guest = await User.findOne({_id: bookingData.guest});
 
         if (!property) {
-            throw new HttpError(404, 'Property not found');
+            throw NotFound('Property not found');
 
         }
 
         if (!guest) {
-            throw new HttpError(404, 'Guest not found');
+            throw NotFound('Guest not found');
         }
 
         //check overlapping bookings
@@ -43,11 +44,11 @@ export class BookingService {
         });
 
         if (overlappingBookings) {
-            throw new HttpError(400, 'Booking overlaps with existing booking');
+            throw BadRequest('Booking overlaps with existing booking');
         }
 
         if (bookingData.numberOfGuests > property.maxGuests) {
-            throw new HttpError(400, 'Number of guests exceeds property limit');
+            throw BadRequest('Number of guests exceeds property limit');
         }
 
         //check if property is available
@@ -65,7 +66,7 @@ export class BookingService {
         const booking = await Booking.findById(bookingId);
 
         if (!booking) {
-            throw new HttpError(404, 'Booking not found');
+            throw NotFound('Booking not found');
         }
 
         return this.mapToBookingResponse(booking);
@@ -95,12 +96,12 @@ export class BookingService {
         const booking = await Booking.findById(bookingId);
 
         if (!booking) {
-            throw new HttpError(404, 'Booking not found');
+            throw NotFound('Booking not found');
         }
 
         if (bookingData.checkIn && bookingData.checkOut) {
             if (!this.validateCheckOutDate(bookingData.checkIn, bookingData.checkOut)) {
-                throw new HttpError(400, 'Check out date should be after check in date');
+                throw BadRequest('Check out date should be after check in date');
             }
 
             const property = await Property.findById(booking.property);
@@ -113,7 +114,7 @@ export class BookingService {
         const updatedBooking = await Booking.findByIdAndUpdate(bookingId, bookingData, {new: true});
 
         if (!updatedBooking) {
-            throw new HttpError(500, 'Internal Server Error');
+            throw InternalServerError('Internal Server Error');
         }
 
         return this.mapToBookingResponse(updatedBooking);
@@ -123,7 +124,7 @@ export class BookingService {
         const booking = await Booking.findByIdAndDelete(bookingId);
 
         if (!booking) {
-            throw new HttpError(404, 'Booking not found');
+            throw NotFound('Booking not found');
         }
 
         return this.mapToBookingResponse(booking);

@@ -191,7 +191,7 @@ export class BookingController {
             const bookings = await this.bookingService.getBookingsByUserId(userId);
             res.status(200).json(bookings);
         } catch (error: any) {
-            res.status(error.status).json({error: error.message});
+            res.status(error.status || 500).json(error);
         }
     }
 
@@ -235,7 +235,7 @@ export class BookingController {
             const bookings = await this.bookingService.getBookingsWithinDateRange(startDate, endDate);
             res.status(200).json(bookings);
         } catch (error: any) {
-            res.status(error.status).json({error: error.message});
+            res.status(error.status || 500).json(error);
         }
     }
 
@@ -276,8 +276,7 @@ export class BookingController {
             const booking = await this.bookingService.updateBooking(bookingId, bookingData);
             res.status(200).json(booking);
         } catch (error: any) {
-            res.status(error.status).json({error: error.message});
-
+            res.status(error.status || 500).json(error);
         }
     };
 
@@ -322,8 +321,7 @@ export class BookingController {
             const bookings = await this.bookingService.getBookingsByPropertyId(propertyId);
             res.status(200).json(bookings);
         } catch (error: any) {
-            const status = error.status || 500;
-            res.status(status).json(createHttpError(status, error.message));
+            res.status(error.status || 500).json(error);
         }
     };
 
@@ -358,7 +356,7 @@ export class BookingController {
             const booking = await this.bookingService.deleteBooking(bookingId);
             res.status(200).json(booking);
         } catch (error: any) {
-            res.status(error.status).json({error: error.message});
+            res.status(error.status || 500).json(error);
         }
     };
 

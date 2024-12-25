@@ -5,7 +5,7 @@ import {PropertyService} from "../services/property.service";
 import {IPropertyCreate, UserRole} from '../models/interfaces';
 import {AuthMiddleware} from "../middleware/auth/auth-middleware";
 import {AuthRequest} from "../middleware/auth/types/token.type";
-import createHttpError from "http-errors";
+import createHttpError, {Forbidden, Unauthorized} from "http-errors";
 
 @singleton()
 export class PropertyController {
@@ -42,9 +42,13 @@ export class PropertyController {
      *               $ref: '#/components/schemas/PropertyResponse'
      */
     createProperty = async (req: Request, res: Response) => {
-        const propertyData: IPropertyCreate = req.body;
-        const property = await this.propertyService.createProperty(propertyData);
-        res.status(201).json(property);
+        try {
+            const propertyData: IPropertyCreate = req.body;
+            const property = await this.propertyService.createProperty(propertyData);
+            res.status(201).json(property);
+        } catch (error: any) {
+            res.status(error.status || 500).json(error);
+        }
     };
 
     //swagger
@@ -208,7 +212,7 @@ export class PropertyController {
             const property = await this.propertyService.getPropertyById(propertyId);
             res.status(200).json(property);
         } catch (error: any) {
-            res.status(404).json({message: error.message});
+            res.status(error.status || 500).json(error);
         }
 
     }
@@ -248,18 +252,31 @@ export class PropertyController {
      *              schema:
      *              $ref: '#/components/schemas/ErrorResponse'
      */
-    updateProperty = async (req: Request, res: Response) => {
-        const userId = (<AuthRequest>req).user?.id;
+    updateProperty = async (req: AuthRequest, res: Response) => {
+        const authenticatedUserId = req.user?.id;
 
-        if (!userId) {
-            res.status(401).json({message: 'Not authenticated'});
-            return;
+        try {
+            if (!authenticatedUserId) {
+                console.error('Not authenticated');
+                throw Unauthorized();
+            }
+
+            const propertyId = req.params.id;
+            const propertyOriginal = await this.propertyService.getPropertyById(propertyId);
+
+            if (!req.user?.roles.includes(UserRole.ADMIN) && propertyOriginal.owner.toString() !== authenticatedUserId) {
+                console.error('Only the owner or an admin can update a property');
+                throw Forbidden();
+            }
+
+            const propertyData = req.body;
+            const property = await this.propertyService.updateProperty(propertyId, propertyData);
+            res.status(200).json(property);
+        } catch (error: any) {
+            res.status(error.status || 500).json(error);
         }
 
-        const propertyId = req.params.id;
-        const propertyData = req.body;
-        const property = await this.propertyService.updateProperty(propertyId, propertyData);
-        res.status(200).json(property);
+
     }
 
     //swagger
@@ -297,9 +314,7 @@ export class PropertyController {
             const property = await this.propertyService.deleteProperty(propertyId);
             res.status(200).json(property);
         } catch (error: any) {
-            res.status(error.status).json({
-                message: error.message
-            });
+            res.status(error.status || 500).json(error);
         }
     }
 
@@ -329,17 +344,29 @@ export class PropertyController {
      *             schema:
      *               $ref: '#/components/schemas/ErrorResponse'
      */
-    getPropertiesForUser = async (req: Request, res: Response) => {
+    getPropertiesForUser = async (req: AuthRequest, res: Response) => {
 
-        const userId = (<AuthRequest>req).user?.id;
+        try {
+            const userId = req.params.userId;
+            const authenticatedUserId = req.user?.id;
 
-        if (!userId) {
-            res.status(401).json({message: 'Not authenticated'});
-            return;
+            if (!authenticatedUserId) {
+                console.error('Not authenticated');
+                throw Unauthorized();
+            }
+
+            // Only allow users to get their own properties unless they are an admin
+            if (!req.user?.roles.includes(UserRole.ADMIN) && userId !== authenticatedUserId) {
+                console.error('only the owner or an admin can get properties for a user');
+                throw Forbidden();
+            }
+
+            const properties = await this.propertyService.getPropertiesByUserId(authenticatedUserId);
+            res.status(200).json(properties);
+        } catch (error: any) {
+            res.status(error.status || 500).json(error);
         }
 
-        const properties = await this.propertyService.getPropertiesByUserId(userId);
-        res.status(200).json(properties);
     }
 
 
@@ -380,7 +407,7 @@ export class PropertyController {
             const properties = await this.propertyService.getAllProperties();
             res.status(200).json(properties);
         } catch (error: any) {
-            res.status(error.status || 500).json(createHttpError(error.status || 500, error.message));
+            res.status(error.status || 500).json(error);
         }
 
 
@@ -424,18 +451,25 @@ export class PropertyController {
      *               $ref: '#/components/schemas/ErrorResponse'
      */
     makePropertyAvailable = async (req: Request, res: Response) => {
-        const propertyId = req.params.id;
-        const property = await this.propertyService.makePropertyAvailable(propertyId);
 
-        res.status(200).json(property);
+        try {
+            const propertyId = req.params.id;
+            const property = await this.propertyService.makePropertyAvailable(propertyId);
+
+            res.status(200).json(property);
+
+        } catch (error: any) {
+            res.status(error.status || 500).json(error);
+        }
     }
+
 
     //router
     routes() {
         this.router.post('/', this.authMiddleware.authenticate, this.createProperty);
         this.router.put('/:id', this.authMiddleware.authenticate, this.authMiddleware.requireRoles([UserRole.USER]), this.updateProperty);
         this.router.get('/:id', this.getPropertyById);
-        this.router.get('/findByUser', this.authMiddleware.authenticate, this.getPropertiesForUser);
+        this.router.get('/findByUser/:userId', this.authMiddleware.authenticate, this.getPropertiesForUser);
         this.router.get('/', this.getAllProperties);
         this.router.put('/:id/available', this.authMiddleware.authenticate, this.authMiddleware.requireRoles([UserRole.USER]), this.makePropertyAvailable);
         return this.router;
