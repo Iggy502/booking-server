@@ -5,6 +5,7 @@ import {IBookingCreate, IBookingUpdate} from '../models/interfaces';
 import {container, singleton} from "tsyringe";
 import {HttpError} from "../services/exceptions/http-error";
 import {AuthMiddleware} from "../middleware/auth/auth-middleware";
+import createHttpError from "http-errors";
 
 @singleton()
 export class BookingController {
@@ -116,6 +117,47 @@ export class BookingController {
             res.status(error.status).json({error: error.message});
         }
     };
+
+
+    /**
+     * @swagger
+     * /bookings/search:
+     *   post:
+     *     summary: Get bookings by multiple property ids
+     *     description: Get all bookings for multiple properties
+     *     tags: [Booking]
+     *     requestBody:
+     *       required: true
+     *       content:
+     *         application/json:
+     *           schema:
+     *             type: object
+     *             properties:
+     *               propertyIds:
+     *                 type: array
+     *                 items:
+     *                   type: string
+     *                 description: Array of property ids
+     *     responses:
+     *       200:
+     *         description: Bookings found
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: array
+     *               items:
+     *                 $ref: '#/components/schemas/BookingResponse'
+     */
+    searchBookingsByPropertyIds = async (req: Request, res: Response) => {
+        const propertyIds = req.body
+        try {
+            const bookings = await this.bookingService.getBookingsByPropertyIds(propertyIds);
+            res.status(200).json(bookings);
+        } catch (error: any) {
+            const status = error.status || 500;
+            res.status(status).json(createHttpError(status, error.message));
+        }
+    }
 
 
     //swagger documentation
@@ -280,58 +322,8 @@ export class BookingController {
             const bookings = await this.bookingService.getBookingsByPropertyId(propertyId);
             res.status(200).json(bookings);
         } catch (error: any) {
-            res.status(error.status || 500).json({error: error.message});
-        }
-    };
-
-
-    //swagger documentation
-    /**
-     * @swagger
-     * /bookings/properties:
-     *   post:
-     *     summary: Get bookings by multiple property ids
-     *     description: Get all bookings for multiple properties
-     *     tags: [Booking]
-     *     requestBody:
-     *       required: true
-     *       content:
-     *         application/json:
-     *           schema:
-     *             type: object
-     *             properties:
-     *               propertyIds:
-     *                 type: array
-     *                 items:
-     *                   type: string
-     *                 description: Array of property ids
-     *     responses:
-     *       200:
-     *         description: Bookings found
-     *         content:
-     *           application/json:
-     *             schema:
-     *               type: array
-     *               items:
-     *                 $ref: '#/components/schemas/BookingResponse'
-     *       404:
-     *         description: One or more properties not found
-     *         content:
-     *           application/json:
-     *             schema:
-     *               type: object
-     *               properties:
-     *                 error:
-     *                   type: string
-     *                   example: One or more properties not found
-     */
-    getBookingsByPropertyIds = async (req: Request, res: Response) => {
-        const propertyIds = req.body.propertyIds as string[];
-        try {
-            const bookings = await this.bookingService.getBookingsByPropertyIds(propertyIds);
-            res.status(200).json(bookings);
-        } catch (error: any) {
-            res.status(error.status || 500).json({error: error.message});
+            const status = error.status || 500;
+            res.status(status).json(createHttpError(status, error.message));
         }
     };
 
@@ -372,6 +364,8 @@ export class BookingController {
 
     routes() {
         this.router.post('/', this.authMiddleware.authenticate, this.createBooking);
+        this.router.get('/findByProperty/:propertyId', this.getBookingsByPropertyId);
+        this.router.post('/search', this.searchBookingsByPropertyIds);
         this.router.get('/:id', this.getBookingById);
         this.router.put('/:id', this.updateBooking);
         this.router.delete('/:id', this.deleteBooking);

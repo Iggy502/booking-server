@@ -21,6 +21,12 @@ const bookingSchema = new mongoose.Schema<IBookingDocument>(
         checkOut: {
             type: Date,
             required: true,
+            validate: {
+                validator: function (value: Date) {
+                    return value > this.checkIn;
+                },
+                message: 'Check-out date must be after check-in date'
+            }
         },
         totalPrice: {
             type: Number,

@@ -1,4 +1,4 @@
-import jwt from 'jsonwebtoken';
+import jwt, {JwtPayload} from 'jsonwebtoken';
 import {IUserDocument} from '../../../models/interfaces';
 import {RefreshTokenPayload, TokenPayload} from '../types/token.type';
 import {UnauthorizedError} from "../exceptions/unauthorized.error";
@@ -43,9 +43,11 @@ export class AuthUtils {
     }
 
 
-    verifyToken(token: string, isRefreshToken: boolean = false): TokenPayload | RefreshTokenPayload {
+    verifyToken(token: string, isRefreshToken: boolean = false) {
         try {
-            return jwt.verify(token, isRefreshToken ? this.refreshSecret : this.jwtSecret) as TokenPayload | RefreshTokenPayload;
+            let verify = jwt.verify(token, isRefreshToken ? this.refreshSecret : this.jwtSecret) as JwtPayload;
+            console.log('verify', verify);
+            return verify;
         } catch (error) {
             throw new UnauthorizedError('Invalid token');
         }

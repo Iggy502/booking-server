@@ -83,54 +83,144 @@ const host2Id = db.users.findOne({email: 'host2@example.com'})._id;
 const guest1Id = db.users.findOne({email: 'guest1@example.com'})._id;
 const guest2Id = db.users.findOne({email: 'guest2@example.com'})._id;
 
-// Insert sample properties
 db.properties.insertMany([
     {
-        name: 'Luxury Beach House',
+        name: 'Luxury Canal House',
         owner: host1Id,
-        description: 'Beautiful beachfront property with amazing views',
+        description: 'Beautiful canalside property in historic Bruges',
         address: {
-            street: '123 Beach Road',
-            city: 'Miami',
-            country: 'USA',
-            postalCode: '33139'
+            street: 'Dijver 12',
+            city: 'Bruges',
+            country: 'Belgium',
+            postalCode: '8000',
+            latitude: 51.2067,
+            longitude: 3.2246
         },
         pricePerNight: 250,
         maxGuests: 4,
         amenities: [
             {
-                type: 'Pool',
-                description: 'Private infinity pool overlooking the ocean'
-            },
-            {
-                type: 'Wifi',
-                description: 'High-speed fiber internet'
-            },
-            {
                 type: 'Parking',
-                description: 'Private garage',
-                amount: 2
-            },
-            {
-                type: 'Spa',
-                description: 'Private jacuzzi'
+                description: 'Outdoor parking',
+                amount: 3
             }
         ],
+        available: true,
         createdAt: new Date(),
-        updatedAt: new Date()
+        updatedAt: new Date(),
+        imagePaths: [
+            'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS_hIj4WY1eD5f5cJTHmLhUqimzDlVgK_XaIQ&s',
+            'https://img.hipcamp.com/images/dpr_2.0/f_auto,q_auto/v1514927749/journal/acjf7ycau00k2ggj76km/acjf7ycau00k2ggj76km.jpg?_i=AA',
+            'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ_8Vbdzgkhqq88HAmHvLJUB2JfXZ1NvAe4Ig&s'
+        ]
     },
     {
-        name: 'Mountain Cabin',
+        name: 'Ardennes Cabin',
         owner: host1Id,
-        description: 'Cozy cabin in the mountains',
+        description: 'Cozy cabin in the Belgian Ardennes',
         address: {
-            street: '456 Mountain Trail',
-            city: 'Aspen',
-            country: 'USA',
-            postalCode: '81611'
+            street: 'Rue de la Forêt 45',
+            city: 'La Roche-en-Ardenne',
+            country: 'Belgium',
+            postalCode: '6980',
+            latitude: 50.1827,
+            longitude: 5.5766
         },
         pricePerNight: 180,
         maxGuests: 6,
+        amenities: [
+            {
+                type: 'Parking',
+                description: 'Outdoor parking',
+                amount: 3
+            }
+        ],
+        available: true,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        imagePaths: [
+            'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS_hIj4WY1eD5f5cJTHmLhUqimzDlVgK_XaIQ&s',
+            'https://img.hipcamp.com/images/dpr_2.0/f_auto,q_auto/v1514927749/journal/acjf7ycau00k2ggj76km/acjf7ycau00k2ggj76km.jpg?_i=AA',
+            'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ_8Vbdzgkhqq88HAmHvLJUB2JfXZ1NvAe4Ig&s'
+        ]
+    },
+    {
+        name: 'Brussels City Apartment',
+        owner: host2Id,
+        description: 'Modern apartment near Grand Place',
+        address: {
+            street: 'Rue du Marché aux Herbes 78',
+            city: 'Brussels',
+            country: 'Belgium',
+            postalCode: '1000',
+            latitude: 50.8468,
+            longitude: 4.3525
+        },
+        pricePerNight: 200,
+        maxGuests: 2,
+        amenities: [
+            {
+                type: 'Parking',
+                description: 'Outdoor parking',
+                amount: 3
+            }
+        ],
+        available: true,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        imagePaths: [
+            'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS_hIj4WY1eD5f5cJTHmLhUqimzDlVgK_XaIQ&s',
+            'https://img.hipcamp.com/images/dpr_2.0/f_auto,q_auto/v1514927749/journal/acjf7ycau00k2ggj76km/acjf7ycau00k2ggj76km.jpg?_i=AA',
+            'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ_8Vbdzgkhqq88HAmHvLJUB2JfXZ1NvAe4Ig&s'
+        ]
+    },
+    {
+        name: 'Ghent Riverside Villa',
+        owner: host2Id,
+        description: 'Spacious villa along the Leie river',
+        address: {
+            street: 'Coupure Links 2',
+            city: 'Ghent',
+            country: 'Belgium',
+            postalCode: '9000',
+            latitude: 51.0535,
+            longitude: 3.7304
+        },
+        pricePerNight: 350,
+        maxGuests: 8,
+        amenities: [
+            {
+                type: 'Wifi',
+                description: 'Satellite internet'
+            },
+            {
+                type: 'PetFriendly',
+                description: 'Dogs welcome'
+            }
+        ],
+        available: true,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        imagePaths: [
+            'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS_hIj4WY1eD5f5cJTHmLhUqimzDlVgK_XaIQ&s',
+            'https://img.hipcamp.com/images/dpr_2.0/f_auto,q_auto/v1514927749/journal/acjf7ycau00k2ggj76km/acjf7ycau00k2ggj76km.jpg?_i=AA',
+            'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ_8Vbdzgkhqq88HAmHvLJUB2JfXZ1NvAe4Ig&s'
+        ]
+    },
+    {
+        name: 'Antwerp Loft',
+        owner: host1Id,
+        description: 'Modern loft in the diamond district',
+        address: {
+            street: 'Pelikaanstraat 20',
+            city: 'Antwerp',
+            country: 'Belgium',
+            postalCode: '2000',
+            latitude: 51.2177,
+            longitude: 4.4208
+        },
+        pricePerNight: 280,
+        maxGuests: 4,
         amenities: [
             {
                 type: 'Wifi',
@@ -150,127 +240,32 @@ db.properties.insertMany([
                 description: 'Dogs welcome'
             }
         ],
+        available: true,
         createdAt: new Date(),
-        updatedAt: new Date()
-    },
-    {
-        name: 'City Center Apartment',
-        owner: host2Id,
-        description: 'Modern apartment in the heart of downtown',
-        address: {
-            street: '789 Main Street',
-            city: 'New York',
-            country: 'USA',
-            postalCode: '10001'
-        },
-        pricePerNight: 200,
-        maxGuests: 2,
-        amenities: [
-            {
-                type: 'Wifi',
-                description: 'Gigabit internet'
-            },
-            {
-                type: 'Gym',
-                description: 'Access to building gym'
-            },
-            {
-                type: 'Restaurant',
-                description: 'Ground floor restaurant'
-            },
-            {
-                type: 'Bar',
-                description: 'Rooftop bar access'
-            }
-        ],
-        createdAt: new Date(),
-        updatedAt: new Date()
-    },
-    {
-        name: 'Lakeside Villa',
-        owner: host2Id,
-        description: 'Spacious villa with private lake access',
-        address: {
-            street: '321 Lake Drive',
-            city: 'Lake Tahoe',
-            country: 'USA',
-            postalCode: '96150'
-        },
-        pricePerNight: 350,
-        maxGuests: 8,
-        amenities: [
-            {
-                type: 'Pool',
-                description: 'Heated outdoor pool'
-            },
-            {
-                type: 'Wifi',
-                description: 'High-speed internet'
-            },
-            {
-                type: 'Parking',
-                description: 'Large driveway',
-                amount: 4
-            },
-            {
-                type: 'Spa',
-                description: 'Private spa and sauna'
-            },
-            {
-                type: 'RoomService',
-                description: 'Available 24/7'
-            }
-        ],
-        createdAt: new Date(),
-        updatedAt: new Date()
-    },
-    {
-        name: 'Desert Oasis',
-        owner: host1Id,
-        description: 'Unique desert property with private pool',
-        address: {
-            street: '555 Desert Road',
-            city: 'Phoenix',
-            country: 'USA',
-            postalCode: '85001'
-        },
-        pricePerNight: 280,
-        maxGuests: 4,
-        amenities: [
-            {
-                type: 'Pool',
-                description: 'Temperature-controlled pool'
-            },
-            {
-                type: 'Wifi',
-                description: 'High-speed internet'
-            },
-            {
-                type: 'Bar',
-                description: 'Private poolside bar'
-            },
-            {
-                type: 'PetFriendly',
-                description: 'Pets welcome with outdoor area'
-            }
-        ],
-        createdAt: new Date(),
-        updatedAt: new Date()
+        updatedAt: new Date(),
+        imagePaths: [
+            'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS_hIj4WY1eD5f5cJTHmLhUqimzDlVgK_XaIQ&s',
+            'https://img.hipcamp.com/images/dpr_2.0/f_auto,q_auto/v1514927749/journal/acjf7ycau00k2ggj76km/acjf7ycau00k2ggj76km.jpg?_i=AA',
+            'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ_8Vbdzgkhqq88HAmHvLJUB2JfXZ1NvAe4Ig&s'
+        ]
     }
 ]);
+
+
 // Get property IDs
-const beachHouseId = db.properties.findOne({name: 'Luxury Beach House'})._id;
-const mountainCabinId = db.properties.findOne({name: 'Mountain Cabin'})._id;
-const cityApartmentId = db.properties.findOne({name: 'City Center Apartment'})._id;
-const lakesideVillaId = db.properties.findOne({name: 'Lakeside Villa'})._id;
+const canalHouse = db.properties.findOne({name: 'Luxury Canal House'})._id;
+const ardennesCabin = db.properties.findOne({name: 'Ardennes Cabin'})._id;
+const cityApartmentBrussels = db.properties.findOne({name: 'Brussels City Apartment'})._id;
+const riversideVillaGhent = db.properties.findOne({name: 'Ghent Riverside Villa'})._id;
+const loftAntwerp = db.properties.findOne({name: 'Antwerp Loft'})._id;
 
 // Insert sample bookings
 db.bookings.insertMany([
     {
-        property: beachHouseId,
+        property: canalHouse,
         guest: guest1Id,
-        checkIn: new Date('2024-12-20'),
-        checkOut: new Date('2024-12-27'),
+        checkIn: new Date('2024-12-27'),
+        checkOut: new Date('2025-01-7'),
         totalPrice: 1750,
         status: 'confirmed',
         numberOfGuests: 2,
@@ -278,7 +273,18 @@ db.bookings.insertMany([
         updatedAt: new Date()
     },
     {
-        property: mountainCabinId,
+        property: riversideVillaGhent,
+        guest: guest1Id,
+        checkIn: new Date('2025-01-13'),
+        checkOut: new Date('2025-01-20'),
+        totalPrice: 1750,
+        status: 'confirmed',
+        numberOfGuests: 2,
+        createdAt: new Date(),
+        updatedAt: new Date()
+    },
+    {
+        property: ardennesCabin,
         guest: guest2Id,
         checkIn: new Date('2024-12-24'),
         checkOut: new Date('2024-12-31'),
@@ -289,7 +295,7 @@ db.bookings.insertMany([
         updatedAt: new Date()
     },
     {
-        property: cityApartmentId,
+        property: cityApartmentBrussels,
         guest: guest1Id,
         checkIn: new Date('2025-01-15'),
         checkOut: new Date('2025-01-20'),
@@ -300,7 +306,7 @@ db.bookings.insertMany([
         updatedAt: new Date()
     },
     {
-        property: lakesideVillaId,
+        property: loftAntwerp,
         guest: guest2Id,
         checkIn: new Date('2025-02-01'),
         checkOut: new Date('2025-02-07'),
@@ -311,7 +317,7 @@ db.bookings.insertMany([
         updatedAt: new Date()
     },
     {
-        property: beachHouseId,
+        property: canalHouse,
         guest: guest2Id,
         checkIn: new Date('2025-03-10'),
         checkOut: new Date('2025-03-15'),

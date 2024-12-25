@@ -31,9 +31,6 @@ export class PropertyService {
             const property = await Property.create(propertyWithCoordinates);
             return this.mapToPropertyResponse(property);
         } catch (error) {
-            if (error instanceof HttpError) {
-                throw error;
-            }
             throw new HttpError(500, 'Failed to create property');
         }
     }
@@ -76,7 +73,7 @@ export class PropertyService {
     }
 
     async getAllProperties(): Promise<IPropertyResponse[]> {
-        const properties = await Property.find();
+        const properties = await Property.find({available: true});
         return properties.map(property => this.mapToPropertyResponse(property));
     }
 

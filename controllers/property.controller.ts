@@ -5,6 +5,7 @@ import {PropertyService} from "../services/property.service";
 import {IPropertyCreate, UserRole} from '../models/interfaces';
 import {AuthMiddleware} from "../middleware/auth/auth-middleware";
 import {AuthRequest} from "../middleware/auth/types/token.type";
+import createHttpError from "http-errors";
 
 @singleton()
 export class PropertyController {
@@ -375,8 +376,14 @@ export class PropertyController {
      *               $ref: '#/components/schemas/ErrorResponse'
      */
     getAllProperties = async (req: Request, res: Response) => {
-        const properties = await this.propertyService.getAllProperties();
-        res.status(200).json(properties);
+        try {
+            const properties = await this.propertyService.getAllProperties();
+            res.status(200).json(properties);
+        } catch (error: any) {
+            res.status(error.status || 500).json(createHttpError(error.status || 500, error.message));
+        }
+
+
     }
 
     //swagger
@@ -425,12 +432,11 @@ export class PropertyController {
 
     //router
     routes() {
-        this.router.post('/', this.createProperty);
+        this.router.post('/', this.authMiddleware.authenticate, this.createProperty);
         this.router.put('/:id', this.authMiddleware.authenticate, this.authMiddleware.requireRoles([UserRole.USER]), this.updateProperty);
-        this.router.get('/', this.getAvailableProperties);
         this.router.get('/:id', this.getPropertyById);
         this.router.get('/findByUser', this.authMiddleware.authenticate, this.getPropertiesForUser);
-        this.router.get('/properties', this.authMiddleware.authenticate, this.authMiddleware.requireRoles([UserRole.ADMIN]), this.getAllProperties);
+        this.router.get('/', this.getAllProperties);
         this.router.put('/:id/available', this.authMiddleware.authenticate, this.authMiddleware.requireRoles([UserRole.USER]), this.makePropertyAvailable);
         return this.router;
     }

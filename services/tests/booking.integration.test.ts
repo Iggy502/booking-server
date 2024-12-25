@@ -27,7 +27,8 @@ describe('BookingService Integration Tests', () => {
             city: 'Test City',
             country: 'Test Country',
             postalCode: '12345',
-            // optional fields can be omitted: longitude, latitude
+            longitude: 56.9,
+            latitude: 45.3
         },
         // optional fields with defaults
         imagePaths: [],

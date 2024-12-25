@@ -1,7 +1,7 @@
 //booking operations
 // Objective: Booking service to handle booking operations
 import {Booking} from '../models/booking.model';
-import {IBookingCreate, IBookingDocument, IBookingResponse, IBookingUpdate} from '../models/interfaces';
+import {IBookingBase, IBookingCreate, IBookingDocument, IBookingResponse, IBookingUpdate} from '../models/interfaces';
 import {Property} from "../models/property.model";
 import {injectable} from "tsyringe";
 import {HttpError} from "./exceptions/http-error";
@@ -77,7 +77,10 @@ export class BookingService {
     }
 
     async getBookingsByPropertyIds(propertyIds: string[]): Promise<IBookingResponse[]> {
-        const bookings: IBookingDocument[] = await Booking.find({property: {$in: propertyIds}});
+        const bookings: IBookingDocument[] = await Booking.find({
+            property: {$in: propertyIds},
+            status: {$ne: 'cancelled'}
+        });
         return bookings.map(booking => this.mapToBookingResponse(booking));
     }
 
