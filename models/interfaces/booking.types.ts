@@ -1,5 +1,6 @@
 // src/models/types/booking.index.ts
 import {Document, Types} from 'mongoose';
+import {Conversation} from "./chat.types";
 
 export type BookingStatus = 'pending' | 'confirmed' | 'cancelled';
 
@@ -11,6 +12,7 @@ export interface IBookingBase {
     totalPrice: number;
     status: BookingStatus;
     numberOfGuests: number;
+    conversation: Conversation;
 }
 
 export interface IBookingDocument extends IBookingBase, Document {

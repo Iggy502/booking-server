@@ -1,6 +1,59 @@
 // src/models/booking.model.ts
 import mongoose from 'mongoose';
-import {IBookingDocument, IBookingModel} from './interfaces';
+import {IBookingDocument, IBookingModel, IUserModel} from './interfaces';
+import {IConversationDocument, IMessageDocument} from "./interfaces/chat.types";
+
+
+const MessageSchema = new mongoose.Schema<IMessageDocument>({
+        content: {
+            type: String,
+            required: true,
+        },
+        from: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'User',
+            required: true,
+        },
+        to: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'User',
+            required: true,
+        }
+
+    },
+    {
+        timestamps: true,
+        toObject: {
+            transform: (doc, ret) => {
+                ret.id = ret._id.toString();
+                delete ret._id;
+                delete ret.__v;
+                return ret;
+            }
+        }
+    });
+
+
+const ConversationSchema = new mongoose.Schema<IConversationDocument>({
+        active: {
+            type: Boolean,
+            default: true,
+        },
+        messages: [MessageSchema],
+    },
+    {
+        timestamps: true,
+        toObject: {
+            transform: (doc, ret) => {
+                ret.id = ret._id.toString();
+                delete ret._id;
+                delete ret.__v;
+                return ret;
+            }
+        }
+    }
+);
+
 
 const bookingSchema = new mongoose.Schema<IBookingDocument>(
     {
@@ -43,6 +96,10 @@ const bookingSchema = new mongoose.Schema<IBookingDocument>(
             required: true,
             min: 1,
         },
+        conversation: {
+            type: ConversationSchema,
+            required: true,
+        }
     },
     {
         timestamps: true,

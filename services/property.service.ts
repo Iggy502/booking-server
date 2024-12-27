@@ -85,23 +85,21 @@ export class PropertyService {
 
     async verifyNoOverlappingBookings(propertyId: string, checkIn: Date, checkOut: Date): Promise<boolean> {
 
-        if (!Property.exists({_id: propertyId})) {
-            throw NotFound('Property not found');
+        if (!Property.exists({_id: propertyId, available: true})) {
+            throw NotFound('Property not found or not available');
         }
 
-        return !(await Booking.exists({
+        let newVar = await Booking.exists({
             property: propertyId,
-            status: 'pending',
-            $or: [
-                {
-                    checkIn: {$lt: checkOut},
-                    checkOut: {$gt: checkIn}
-                },
-                {
-                    checkIn: {$gte: checkIn, $lt: checkOut}
-                }
+            status: {$in: ['confirmed', 'pending']},
+            $nor: [
+                {checkOut: {$lt: checkIn}},
+                {checkIn: {$gt: checkOut}}
             ]
-        }));
+        });
+
+        console.log('overlapping is there: ', newVar);
+        return !newVar;
     }
 
     async getAvailablePropertiesWithoutBookingsFilteredBy(filter: Map<string, string>): Promise<IPropertyResponse[]> {
@@ -166,14 +164,20 @@ export class PropertyService {
     }
 
     async getPropertyById(propertyId: string): Promise<IPropertyResponse> {
-        const property = await Property.findById(propertyId);
+        const property = await Property.findOne({_id: propertyId, available: true});
 
         if (!property) {
-            throw new NotFound('Property not found');
+            throw new NotFound('Property not found or not available');
         }
 
         return this.mapToPropertyResponse(property);
     }
+
+    async getPropertyByIds(propertyIds: string[]): Promise<IPropertyResponse[]> {
+        const properties = await Property.find({_id: {$in: propertyIds}, available: true});
+        return properties.map(property => this.mapToPropertyResponse(property));
+    }
+
 
     async updateProperty(propertyId: string, propertyData: IPropertyUpdate): Promise<IPropertyResponse> {
         try {

@@ -14,14 +14,14 @@ export class BookingService {
     async createBooking(bookingData: IBookingCreate): Promise<IBookingResponse> {
 
         if (!this.validateCheckOutDate(bookingData.checkIn, bookingData.checkOut)) {
-            throw new HttpError(400, 'Check out date should be after check in date');
+            throw BadRequest('Check out date should be after check in date');
         }
 
-        const property = await Property.findById(bookingData.property);
+        const property = await Property.findOne({_id: bookingData.property, available: true});
         const guest = await User.findOne({_id: bookingData.guest});
 
         if (!property) {
-            throw NotFound('Property not found');
+            throw NotFound('Property not found or not available');
 
         }
 
@@ -30,18 +30,15 @@ export class BookingService {
         }
 
         //check overlapping bookings
-        const overlappingBookings = await Booking.findOne({
+        const overlappingBookings = await Booking.exists({
             property: bookingData.property,
-            $or: [
-                {checkIn: {$gte: bookingData.checkIn, $lt: bookingData.checkOut}},
-                {
-                    $and: [
-                        {checkIn: {$lt: bookingData.checkIn}},
-                        {checkOut: {$gt: bookingData.checkIn}}
-                    ]
-                }
-            ],
+            status: {$in: ['confirmed', 'pending']},
+            $nor: [
+                {checkOut: {$lt: bookingData.checkIn}},
+                {checkIn: {$gt: bookingData.checkOut}}
+            ]
         });
+
 
         if (overlappingBookings) {
             throw BadRequest('Booking overlaps with existing booking');
@@ -51,13 +48,13 @@ export class BookingService {
             throw BadRequest('Number of guests exceeds property limit');
         }
 
-        //check if property is available
-        await Booking.find({property: bookingData.property});
         const booking = await Booking.create({
             ...bookingData,
             status: 'pending',
+            conversation: {messages: [], active: true}, //create conversation
             totalPrice: this.calculateTotalPrice(property.pricePerNight, bookingData.checkIn, bookingData.checkOut)
         });
+
 
         return this.mapToBookingResponse(booking);
     }

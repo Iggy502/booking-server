@@ -5,7 +5,8 @@ import {IBookingCreate, IBookingUpdate} from '../models/interfaces';
 import {container, singleton} from "tsyringe";
 import {HttpError} from "../services/exceptions/http-error";
 import {AuthMiddleware} from "../middleware/auth/auth-middleware";
-import createHttpError from "http-errors";
+import createHttpError, {BadRequest} from "http-errors";
+import {AuthRequest} from "../middleware/auth/types/token.type";
 
 @singleton()
 export class BookingController {
@@ -61,14 +62,18 @@ export class BookingController {
      *               type: string
      *               example: Not found
      */
-    createBooking = async (req: Request, res: Response) => {
+    createBooking = async (req: AuthRequest, res: Response) => {
         try {
-            if (!req.body.checkIn || !req.body.checkOut || !req.body.propertyId || !req.body.guestId) {
-                throw new HttpError(400, 'Please provide checkIn, checkOut, propertyId and guestId');
+
+            const currentUser = req.user?.id!;
+
+            if (!req.body.checkIn || !req.body.checkOut || !req.body.property) {
+                throw BadRequest('Please provide checkIn, checkOut, propertyId');
             }
 
             const bookingData: IBookingCreate = {
                 ...req.body,
+                guest: currentUser,
                 checkIn: new Date(req.body.checkIn),
                 checkOut: new Date(req.body.checkOut)
             };
@@ -76,11 +81,8 @@ export class BookingController {
             const booking = await this.bookingService.createBooking(bookingData);
             res.status(201).json(booking);
         } catch (error: any) {
-            if (error instanceof HttpError) {
-                res.status(error.status).json({error: error.message});
-            } else {
-                res.status(500).json({error: 'Internal server error'});
-            }
+            res.status(error.status || 500).json(error);
+
         }
     };
 
@@ -186,7 +188,7 @@ export class BookingController {
      *                 $ref: '#/components/schemas/BookingResponse'
      */
     getBookingsByUserId = async (req: Request, res: Response) => {
-        const userId = req.query.userId as string;
+        const userId = req.params.userId as string;
         try {
             const bookings = await this.bookingService.getBookingsByUserId(userId);
             res.status(200).json(bookings);
@@ -365,6 +367,7 @@ export class BookingController {
         this.router.get('/findByProperty/:propertyId', this.getBookingsByPropertyId);
         this.router.post('/search', this.searchBookingsByPropertyIds);
         this.router.get('/:id', this.getBookingById);
+        this.router.get('/user/:userId', this.getBookingsByUserId);
         this.router.put('/:id', this.updateBooking);
         this.router.delete('/:id', this.deleteBooking);
         return this.router;

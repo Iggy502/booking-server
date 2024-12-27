@@ -2,10 +2,10 @@
 import {Request, Response, Router} from 'express';
 import {container, singleton} from "tsyringe";
 import {PropertyService} from "../services/property.service";
-import {IPropertyCreate, UserRole} from '../models/interfaces';
+import {IPropertyBase, IPropertyCreate, UserRole} from '../models/interfaces';
 import {AuthMiddleware} from "../middleware/auth/auth-middleware";
 import {AuthRequest} from "../middleware/auth/types/token.type";
-import createHttpError, {Forbidden, Unauthorized} from "http-errors";
+import createHttpError, {BadRequest, Forbidden, Unauthorized} from "http-errors";
 
 @singleton()
 export class PropertyController {
@@ -166,15 +166,19 @@ export class PropertyController {
      */
     checkAvailabilityForPropertyStartAndEndDate = async (req: Request, res: Response) => {
         const propertyId = req.params.propertyId;
-        const {startDate, endDate} = req.query;
+        const {checkIn, checkOut} = req.query;
 
-        if (!startDate || !endDate) {
-            res.status(400).json({error: 'Start and end date are required'});
-            return;
+        try {
+            if (!checkIn || !checkOut) {
+                throw BadRequest('Start and end date are required');
+            }
+
+            const isAvailable = await this.propertyService.verifyNoOverlappingBookings(propertyId, new Date(checkIn as string), new Date(checkOut as string));
+            res.status(200).json(isAvailable);
+        } catch (error: any) {
+            res.status(error.status || 500).json(error);
+
         }
-
-        const isAvailable = await this.propertyService.verifyNoOverlappingBookings(propertyId, new Date(startDate as string), new Date(endDate as string));
-        res.status(200).json({available: isAvailable});
     }
 
     //swagger
@@ -215,6 +219,47 @@ export class PropertyController {
             res.status(error.status || 500).json(error);
         }
 
+    }
+
+    /**
+     * @swagger
+     * /properties/searchByIds:
+     *   post:
+     *     summary: Search properties by property IDs
+     *     description: Search properties by providing an array of property IDs
+     *     tags: [Property]
+     *     requestBody:
+     *       required: true
+     *       content:
+     *         application/json:
+     *           schema:
+     *             type: array
+     *             items:
+     *               type: string
+     *     responses:
+     *       200:
+     *         description: Properties found
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: array
+     *               items:
+     *                 $ref: '#/components/schemas/PropertyResponse'
+     *       500:
+     *         description: Internal server error
+     *         content:
+     *           application/json:
+     *             schema:
+     *               $ref: '#/components/schemas/ErrorResponse'
+     */
+    searchPropertiesByPropertyIds = async (req: Request, res: Response) => {
+        const propertyIds = req.body
+        try {
+            const bookings = await this.propertyService.getPropertyByIds(propertyIds);
+            res.status(200).json(bookings);
+        } catch (error: any) {
+            res.status(error.status || 500).json(error);
+        }
     }
 
     //swagger
@@ -469,6 +514,8 @@ export class PropertyController {
         this.router.post('/', this.authMiddleware.authenticate, this.createProperty);
         this.router.put('/:id', this.authMiddleware.authenticate, this.authMiddleware.requireRoles([UserRole.USER]), this.updateProperty);
         this.router.get('/:id', this.getPropertyById);
+        this.router.post('/searchByIds', this.searchPropertiesByPropertyIds);
+        this.router.get('/checkAvailabilityForPropertyStartAndEndDate/:propertyId', this.checkAvailabilityForPropertyStartAndEndDate);
         this.router.get('/findByUser/:userId', this.authMiddleware.authenticate, this.getPropertiesForUser);
         this.router.get('/', this.getAllProperties);
         this.router.put('/:id/available', this.authMiddleware.authenticate, this.authMiddleware.requireRoles([UserRole.USER]), this.makePropertyAvailable);

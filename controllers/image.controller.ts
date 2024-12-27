@@ -42,8 +42,7 @@ export class ImageController {
                 return;
             }
 
-            const propertyWithAddedImages =
-                this.imageUploadService.uploadPropertyImages(files, UploadType.PROPERTY, {propertyId});
+            const propertyWithAddedImages = await this.imageUploadService.uploadPropertyImages(files, UploadType.PROPERTY, {propertyId});
 
             res.status(200).json(propertyWithAddedImages);
         } catch (error: any) {
