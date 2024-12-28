@@ -46,6 +46,7 @@ const propertySchema = new mongoose.Schema<IPropertyDocument>(
         imagePaths: {
             type: [String],
             required: false,
+            default: [],
         },
         amenities: {
             type: [{

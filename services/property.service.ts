@@ -1,17 +1,24 @@
 //Property service to handle property operations
 import {Property} from '../models/property.model';
-import {IPropertyCreate, IPropertyDocument, IPropertyResponse, IPropertyUpdate} from '../models/interfaces';
+import {
+    IPropertyBase,
+    IPropertyCreate,
+    IPropertyDocument,
+    IPropertyResponse,
+    IPropertyUpdate
+} from '../models/interfaces';
 import {container, injectable} from 'tsyringe';
 import {HttpError} from "./exceptions/http-error";
 import {GeocodingService} from "./geocoding.service";
 import {Booking} from "../models/booking.model";
-import {exists} from "node:fs";
 import {BadRequest, InternalServerError, NotFound} from "http-errors";
+import {ImageUploadService} from "./image.upload.service";
 
 @injectable()
 export class PropertyService {
 
     private geocodingService: GeocodingService;
+    private imageUploadService!: ImageUploadService;
 
     constructor() {
         this.geocodingService = container.resolve(GeocodingService);
@@ -32,9 +39,20 @@ export class PropertyService {
             const property = await Property.create(propertyWithCoordinates);
             return this.mapToPropertyResponse(property);
         } catch (error) {
+            console.error('Error creating property:', error);
             throw InternalServerError('Failed to create property');
         }
     }
+
+    // Lazy getter for imageUploadService
+    // Avoids circular dependency issue
+    private getImageUploadService(): ImageUploadService {
+        if (!this.imageUploadService) {
+            this.imageUploadService = container.resolve(ImageUploadService);
+        }
+        return this.imageUploadService;
+    }
+
 
     async createPropertyWithOwner(userId: string, propertyData: IPropertyCreate): Promise<IPropertyResponse> {
         try {
@@ -52,9 +70,7 @@ export class PropertyService {
             const property = await Property.create(propertyWithCoordinates);
             return this.mapToPropertyResponse(property);
         } catch (error) {
-            if (error instanceof HttpError) {
-                throw error;
-            }
+            console.error('Error creating property:', error);
             throw new InternalServerError('Failed to create property');
         }
     }
@@ -70,7 +86,16 @@ export class PropertyService {
     }
 
     private mapToPropertyResponse(property: IPropertyDocument): IPropertyResponse {
-        return <IPropertyResponse>property.toObject();
+        const propertyResponse = <IPropertyResponse>property.toObject();
+        const imagesPathsFullUrl = propertyResponse.imagePaths?.map(imagePath => {
+            return this.getImageUploadService().convertPathToUrl(imagePath);
+        });
+
+        if (imagesPathsFullUrl) {
+            return {...propertyResponse, imagePaths: imagesPathsFullUrl};
+        }
+
+        return propertyResponse;
     }
 
     async getAllProperties(): Promise<IPropertyResponse[]> {
@@ -178,6 +203,26 @@ export class PropertyService {
         return properties.map(property => this.mapToPropertyResponse(property));
     }
 
+    async updatePropertyImages(propertyId: string, imagePaths: NonNullable<IPropertyBase['imagePaths']>): Promise<IPropertyResponse> {
+        const property = await Property.findById(propertyId);
+
+        if (!property) {
+            throw new NotFound('Property not found');
+        }
+
+        const propertyImages = property.imagePaths || [];
+        propertyImages.push(...imagePaths);
+
+        const updatedProperty = await Property
+            .findByIdAndUpdate(propertyId, {imagePaths: propertyImages}, {new: true});
+
+        if (!updatedProperty) {
+            throw new InternalServerError('Failed to update property images');
+        }
+
+        return this.mapToPropertyResponse(property);
+    }
+
 
     async updateProperty(propertyId: string, propertyData: IPropertyUpdate): Promise<IPropertyResponse> {
         try {
@@ -230,10 +275,12 @@ export class PropertyService {
     }
 
 
-    async removePropertyImage(propertyId: string, imageId: string) {
+    async removePropertyImage(propertyId: string, imageURL: string) {
+
+        let imagePath = this.getImageUploadService().convertUrlToPath(imageURL);
 
         const propertyResult = await Property.findByIdAndUpdate(propertyId, {
-            $pull: {imagePaths: imageId}
+            $pull: {imagePaths: imagePath}
         });
 
         if (!propertyResult) {

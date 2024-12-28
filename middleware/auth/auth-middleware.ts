@@ -6,6 +6,7 @@ import {AuthUtils} from './utils/auth.utils';
 import {singleton} from 'tsyringe';
 import {Unauthorized} from "http-errors";
 import {UserRole} from "../../models/interfaces";
+import {User} from "../../models/user.model";
 
 @singleton()
 export class AuthMiddleware {
@@ -25,7 +26,20 @@ export class AuthMiddleware {
             }
 
             try {
-                req.user = this.authUtils.verifyToken(token) as TokenPayload;
+                const jwtPayload = this.authUtils.verifyToken(token) as TokenPayload;
+
+                const userForToken = await User.findById(jwtPayload.id);
+
+                if (!userForToken) {
+                    res.status(401).json({
+                        code: 'AUTH_USER_NOT_FOUND',
+                        message: 'User not found'
+                    });
+                    return;
+                }
+
+                req.user = jwtPayload;
+
                 next();
             } catch (tokenError) {
                 throw Unauthorized('Token expired or invalid');
@@ -34,7 +48,8 @@ export class AuthMiddleware {
             console.error('Authentication error:', error);
             next(error);
         }
-    };
+    }
+    ;
 
     requireRoles = (roles: string[], adminOverride = false) => {
         return async (req: AuthRequest, res: Response, next: NextFunction) => {

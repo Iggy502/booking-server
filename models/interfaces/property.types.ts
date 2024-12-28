@@ -27,12 +27,12 @@ export interface IPropertyDocument extends IPropertyBase, Document {
 }
 
 //property should be made available after creation
-export interface IPropertyCreate extends Omit<IPropertyBase, 'available'> {
-
+export interface IPropertyCreate extends IPropertyBase {
+    imagePaths?: never; //imagePaths should be added after creation
 }
 
 export interface IPropertyUpdate extends Partial<IPropertyBase> {
-
+    imagePaths?: never; //imagePaths should be updated separately
 }
 
 export interface IPropertyResponse extends IPropertyBase {

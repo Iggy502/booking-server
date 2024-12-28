@@ -1,9 +1,10 @@
 import {Request, Response, Router} from 'express';
 import {container, singleton} from "tsyringe";
 import {AuthService} from '../services/auth.service';
-import {AuthRequest, TokenPayload} from '../middleware/auth/types/token.type';
+import {AuthRequest} from '../middleware/auth/types/token.type';
 import {AuthMiddleware} from '../middleware/auth/auth-middleware';
 import {AuthUtils} from "../middleware/auth/utils/auth.utils";
+import {Unauthorized} from "http-errors";
 
 @singleton()
 export class AuthController {
@@ -95,7 +96,7 @@ export class AuthController {
         try {
             const refreshToken = req.cookies[this.REFRESH_TOKEN_COOKIE_NAME];
             if (!refreshToken) {
-                throw new Error('No refresh token provided');
+                throw Unauthorized('No refresh token provided');
             }
 
             const deviceInfo = req.headers['user-agent'] || 'unknown';

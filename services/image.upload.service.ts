@@ -1,9 +1,9 @@
 import {container, injectable} from "tsyringe";
-import {DeleteObjectCommand, PutObjectCommand, S3Client} from "@aws-sdk/client-s3";
+import {DeleteObjectCommand, ListObjectsV2Command, PutObjectCommand, S3Client} from "@aws-sdk/client-s3";
 import {IPropertyResponse, IUserResponse} from "../models/interfaces";
-import {HttpError} from "./exceptions/http-error";
 import {PropertyService} from "./property.service";
 import {UserService} from "./user.service";
+import {BadRequest, InternalServerError} from "http-errors";
 
 export enum UploadType {
     PROPERTY = 'properties',
@@ -45,7 +45,7 @@ export class ImageUploadService {
     ): Promise<string> {
         try {
             if (Object.values(UploadType).indexOf(type) === -1) {
-                throw new Error('Invalid upload type');
+                throw BadRequest('Invalid upload type');
             }
 
             let filePath: string;
@@ -54,20 +54,20 @@ export class ImageUploadService {
             switch (type) {
                 case UploadType.PROPERTY:
                     if (!(<PropertyUploadOptions>options)?.propertyId) {
-                        throw new Error('Property ID is required for property images');
+                        throw BadRequest('Property ID is required for property images');
                     }
                     fileName = this.createPropertyImageFileName(file.originalname);
                     filePath = `${UploadType.PROPERTY}/${(<PropertyUploadOptions>options).propertyId}/${fileName}`;
                     break;
                 case UploadType.PROFILE:
                     if (!(<ProfileUploadOptions>options)?.userId) {
-                        throw new Error('User ID is required for profile images');
+                        throw BadRequest('User ID is required for profile images');
                     }
                     fileName = this.createProfileImageFileName(file.originalname);
                     filePath = `${UploadType.PROFILE}/${(<ProfileUploadOptions>options).userId}/${fileName}`;
                     break;
                 default:
-                    throw new Error('Invalid upload type');
+                    throw BadRequest('Invalid upload type');
             }
 
             const command = new PutObjectCommand({
@@ -77,49 +77,56 @@ export class ImageUploadService {
                 ContentType: file.mimetype
             });
 
-            await this.s3Client.send(command);
+            var res = await this.s3Client.send(command);
 
-            const imageUrl = `https://${this.bucket}.s3.${process.env.AWS_REGION}.amazonaws.com/${filePath}`;
+            console.log('Uploaded image to S3:', res);
+
+            const imageUrl = filePath
+            // `https://${this.bucket}.s3.${process.env.AWS_REGION}.amazonaws.com/${filePath}`;
 
 
             return imageUrl;
         } catch (error) {
             console.error('Error uploading to S3:', error);
-            throw new HttpError(500, 'Failed to upload image');
+            throw error;
         }
     }
 
+    convertUrlToPath(url: string): string {
+        const path = url.replace(`https://${this.bucket}.s3.${process.env.AWS_REGION}.amazonaws.com/`, '');
+        return path;
+    }
 
     convertPathToUrl(path: string): string {
         return `https://${this.bucket}.s3.${process.env.AWS_REGION}.amazonaws.com/${path}`;
     }
 
-    private createPropertyImageFileName(originalName: string): string {
+    private createPropertyImageFileName = (originalName: string): string => {
         const timestamp = Date.now();
         const randomString = Math.random().toString(36).substring(2, 8);
         const extension = originalName.split('.').pop();
         return `${timestamp}-${randomString}.${extension}`;
-    }
+    };
 
-    private createProfileImageFileName(originalName: string): string {
+    private createProfileImageFileName = (originalName: string): string => {
         const timestamp = Date.now();
         const randomString = Math.random().toString(36).substring(2, 8);
         const extension = originalName.split('.').pop();
         return `${timestamp}-${randomString}.${extension}`;
-    }
+    };
 
 
     uploadProfileImage = async (file: Express.Multer.File, options: ProfileUploadOptions): Promise<IUserResponse> => {
         const url = await this.uploadImage(file, UploadType.PROFILE, options);
-        return this.userService.updateUser(options.userId, {profilePicturePath: url});
+        return this.userService.updateUserImages(options.userId, this.convertUrlToPath(url));
     };
 
 
-    uploadPropertyImages = async (files: Express.Multer.File[], PROPERTY: UploadType, options: PropertyUploadOptions): Promise<IPropertyResponse> => {
+    uploadPropertyImages = async (files: Express.Multer.File[], options: PropertyUploadOptions): Promise<IPropertyResponse> => {
         const urls = await Promise.all(files.map(async (file) => {
             return this.uploadImage(file, UploadType.PROPERTY, options);
         }));
-        return this.propertyService.updateProperty(options.propertyId, {imagePaths: urls});
+        return this.propertyService.updatePropertyImages(options.propertyId, urls.map(url => this.convertUrlToPath(url)));
     };
 
     async deletePropertyImage(propertyId: string, imagePathString: string) {
@@ -141,11 +148,20 @@ export class ImageUploadService {
         });
 
         try {
-            await this.s3Client.send(command);
+            const response = await this.s3Client.send(command);
+            console.log('Deleted image from S3:', response);
         } catch (error) {
             console.error('Error deleting image from S3:', error);
-            throw new HttpError(500, 'Failed to delete image');
+            throw InternalServerError('Failed to delete image');
         }
+
+        const listCommand = new ListObjectsV2Command({
+            Bucket: "bookingimages502",
+            Prefix: path  // Use the same key you tried to delete
+        });
+
+        const listResponse = await this.s3Client.send(listCommand);
+        console.log("Objects after deletion:", listResponse.Contents);
     }
 
 }

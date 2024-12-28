@@ -1,44 +1,84 @@
 // Objective: User service to handle user operations
 import {User} from '../models/user.model';
-import {IUserCreate, IUserResponse} from '../models/interfaces';
-import {singleton} from 'tsyringe';
-import {HttpError} from "./exceptions/http-error";
+import {IUserCreate, IUserDocument, IUserResponse} from '../models/interfaces';
+import {container, singleton} from 'tsyringe';
+import {NotFound} from "http-errors";
+import {ImageUploadService} from "./image.upload.service";
 
 
 @singleton()
 export class UserService {
+
+    private imageUploadService!: ImageUploadService;
+
+
     async createUser(userData: IUserCreate): Promise<IUserResponse> {
         const user = await User.create(userData);
         return <IUserResponse>user.toObject();
+    }
+
+    // Lazy getter for imageUploadService
+    // Avoids circular dependency issue
+    private getImageUploadService(): ImageUploadService {
+        if (!this.imageUploadService) {
+            this.imageUploadService = container.resolve(ImageUploadService);
+        }
+        return this.imageUploadService;
     }
 
     async getUserById(userId: string): Promise<IUserResponse> {
         const user = await User.findById(userId);
 
         if (!user) {
-            throw new HttpError(404, 'User not found');
+            throw NotFound('User not found');
         }
 
-        return <IUserResponse>user.toObject();
+        return this.mapToPropertyResponse(user);
     }
 
     async updateUser(userId: string, userData: Partial<IUserCreate>): Promise<IUserResponse> {
         const user = await User.findByIdAndUpdate(userId, userData, {new: true});
 
         if (!user) {
-            throw new HttpError(404, 'User not found');
+            throw NotFound('User not found');
         }
 
-        return <IUserResponse>user.toObject();
+        return this.mapToPropertyResponse(user);
     }
 
     async deleteUser(userId: string): Promise<IUserResponse> {
         const user = await User.findByIdAndDelete(userId);
 
         if (!user) {
-            throw new HttpError(404, 'User not found');
+            throw NotFound('User not found');
         }
 
-        return <IUserResponse>user.toObject();
+        return this.mapToPropertyResponse(user);
+    }
+
+    async updateUserImages(userId: string, newProfilePicPath: string): Promise<IUserResponse> {
+
+        const user = await User.findByIdAndUpdate(userId, {profilePicturePath: newProfilePicPath}, {new: true});
+
+        if (!user) {
+            throw NotFound('User not found');
+        }
+
+        return this.mapToPropertyResponse(user);
+
+    }
+
+
+    private mapToPropertyResponse(user: IUserDocument): IUserResponse {
+        const userResponse = <IUserResponse>user.toObject();
+
+        const imagesPathsFullUrl = userResponse.profilePicturePath ?
+            this.getImageUploadService().convertPathToUrl(userResponse.profilePicturePath) : null;
+
+        if (imagesPathsFullUrl) {
+            return {...userResponse, profilePicturePath: imagesPathsFullUrl};
+        }
+
+        return userResponse;
     }
 }

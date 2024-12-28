@@ -1,10 +1,13 @@
 // src/controllers/image.controller.ts
 import {Request, Response, Router} from 'express';
 import {container, singleton} from "tsyringe";
-import {ImageUploadService, UploadType} from "../services/image.upload.service";
+import {ImageUploadService} from "../services/image.upload.service";
 import {AuthMiddleware} from "../middleware/auth/auth-middleware";
 import multer from "multer";
 import {PropertyService} from "../services/property.service";
+import {BadRequest, Forbidden, Unauthorized} from "http-errors";
+import {AuthRequest} from "../middleware/auth/types/token.type";
+import {UserRole} from "../models/interfaces";
 
 @singleton()
 export class ImageController {
@@ -12,6 +15,8 @@ export class ImageController {
     authMiddleware: AuthMiddleware;
     propertyService: PropertyService;
     router: Router;
+
+    readonly MAX_IMAGES = 6;
 
     constructor() {
         this.imageUploadService = container.resolve(ImageUploadService);
@@ -35,48 +40,97 @@ export class ImageController {
     uploadPropertyImages = async (req: Request, res: Response): Promise<void> => {
         try {
             const files = req.files as Express.Multer.File[];
-            const propertyId = req.params.propertyId; // Get from URL params
+            const propertyId = req.params.propertyId;
+
+            const currProperty = await this.propertyService.getPropertyById(propertyId);
+            const currImageCount = currProperty.imagePaths?.length || 0;
+
+            if (currImageCount + files.length > this.MAX_IMAGES) {
+                throw BadRequest('Cannot upload more than 6 images');
+            }
 
             if (!files || files.length === 0) {
                 res.status(400).json({error: 'No files provided'});
                 return;
             }
 
-            const propertyWithAddedImages = await this.imageUploadService.uploadPropertyImages(files, UploadType.PROPERTY, {propertyId});
+            const propertyWithAddedImages = await this.imageUploadService.uploadPropertyImages(files, {propertyId});
 
             res.status(200).json(propertyWithAddedImages);
         } catch (error: any) {
-            res.status(500).json({error: error.message});
+            res.status(error | 500).json(error);
         }
     };
 
-    uploadProfileImage = async (req: Request, res: Response): Promise<void> => {
+
+    getPropertyImagesForProperty = async (req: AuthRequest, res: Response): Promise<void> => {
         try {
-            const file = req.file;
-            if (!file) {
-                res.status(400).json({error: 'No file provided'});
-                return;
+            const propertyId = req.params.propertyId;
+
+            if (!propertyId) {
+                throw BadRequest('Property ID is required');
             }
 
-            const url = await this.imageUploadService.uploadImage(file, UploadType.PROFILE);
+            const userId = req.user!.id;
+            const propertyResponse = await this.propertyService.getPropertyById(propertyId);
+
+            if (propertyResponse.owner.toString() !== userId) {
+                throw Forbidden('You do not have permission to view these images');
+            }
+
+            res.status(200).json(propertyResponse.imagePaths);
+        } catch (error: any) {
+            res.status(error | 500).json(error);
+        }
+    }
+
+    uploadProfileImage = async (req: AuthRequest, res: Response): Promise<void> => {
+        try {
+            const file = req.file;
+
+            const userId = req.params.userId;
+            const currAuthenticatedUserId = req.user!.id;
+
+            if (!currAuthenticatedUserId) {
+                throw Unauthorized('Not authorized');
+            }
+
+            if (currAuthenticatedUserId !== userId && !req.user?.roles.includes(UserRole.ADMIN)) {
+                throw Forbidden('Only admins can upload profile images for other users');
+            }
+
+            if (!file) {
+                throw BadRequest('No file provided');
+            }
+
+            const url = await this.imageUploadService.uploadProfileImage(file, {userId: req.user!.id});
             res.status(200).json({url});
         } catch (error: any) {
-            res.status(500).json({error: error.message});
+            res.status(error | 500).json(error);
         }
     };
 
     deletePropertyImage = async (req: Request, res: Response): Promise<void> => {
         try {
-            const {propertyId, imageId} = req.body;
+            const {propertyId, imagePath} = req.body;
 
-            if (!propertyId || !imageId) {
-                res.status(400).json({error: 'Property ID and image ID are required'});
-                return;
+            if (!propertyId || !imagePath) {
+                throw BadRequest('Property ID and image path are required');
             }
-            await this.propertyService.removePropertyImage(propertyId, imageId);
+
+            const bucketImageRemove = new Promise<void>((resolve, reject) => {
+                this.imageUploadService.deletePropertyImage(propertyId, imagePath)
+                    .then(() => resolve())
+                    .catch((error) => {
+                        console.error('Error deleting image on AWS, cleanup later...', error);
+                        reject(error);
+                    });
+            });
+
+            await Promise.all([bucketImageRemove, this.propertyService.removePropertyImage(propertyId, imagePath)]);
             res.status(200).json({message: 'Image deleted successfully'});
         } catch (error: any) {
-            res.status(500).json({error: error.message});
+            res.status(error | 500).json(error);
         }
     }
 
@@ -99,15 +153,27 @@ export class ImageController {
         this.router.post(
             '/property/:propertyId',  // Updated route to include propertyId
             this.authMiddleware.authenticate,
-            this.upload.array('images', 5),
+            this.upload.array('images', this.MAX_IMAGES),
             this.uploadPropertyImages
         );
 
         this.router.post(
-            '/profile',
+            '/profile/:userId',
             this.authMiddleware.authenticate,
             this.upload.single('image'),
             this.uploadProfileImage
+        );
+
+        this.router.delete(
+            '/property',
+            this.authMiddleware.authenticate,
+            this.deletePropertyImage
+        );
+
+        this.router.get(
+            '/property/:propertyId',
+            this.authMiddleware.authenticate,
+            this.getPropertyImagesForProperty
         );
 
         return this.router;

@@ -2,10 +2,10 @@
 import {Request, Response, Router} from 'express';
 import {container, singleton} from "tsyringe";
 import {PropertyService} from "../services/property.service";
-import {IPropertyBase, IPropertyCreate, UserRole} from '../models/interfaces';
+import {IPropertyCreate, UserRole} from '../models/interfaces';
 import {AuthMiddleware} from "../middleware/auth/auth-middleware";
 import {AuthRequest} from "../middleware/auth/types/token.type";
-import createHttpError, {BadRequest, Forbidden, Unauthorized} from "http-errors";
+import {BadRequest, Forbidden, Unauthorized} from "http-errors";
 
 @singleton()
 export class PropertyController {
@@ -512,7 +512,7 @@ export class PropertyController {
     //router
     routes() {
         this.router.post('/', this.authMiddleware.authenticate, this.createProperty);
-        this.router.put('/:id', this.authMiddleware.authenticate, this.authMiddleware.requireRoles([UserRole.USER]), this.updateProperty);
+        this.router.put('/:id', this.authMiddleware.authenticate, this.updateProperty);
         this.router.get('/:id', this.getPropertyById);
         this.router.post('/searchByIds', this.searchPropertiesByPropertyIds);
         this.router.get('/checkAvailabilityForPropertyStartAndEndDate/:propertyId', this.checkAvailabilityForPropertyStartAndEndDate);

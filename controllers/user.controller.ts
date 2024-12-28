@@ -4,6 +4,8 @@ import {UserService} from '../services/user.service';
 import {IUserCreate, UserRole} from '../models/interfaces';
 import {container, singleton} from "tsyringe";
 import {AuthMiddleware} from "../middleware/auth/auth-middleware";
+import {AuthRequest} from "../middleware/auth/types/token.type";
+import {Forbidden} from "http-errors";
 
 
 @singleton()
@@ -88,8 +90,13 @@ export class UserController {
      */
     getUserById = async (req: Request, res: Response) => {
         const userId = req.params.id;
-        const user = await this.userService.getUserById(userId);
-        res.json(user);
+
+        try {
+            const user = await this.userService.getUserById(userId);
+            res.status(200).json(user);
+        } catch (error: any) {
+            res.status(error.status || 500).json(error);
+        }
     };
 
     /**
@@ -139,14 +146,21 @@ export class UserController {
      *                   type: string
      *                   example: Internal Server Error
      */
-    updateUser = async (req: Request, res: Response) => {
+    updateUser = async (req: AuthRequest, res: Response) => {
+
+        const currentAuthenticatedUserId = req.user?.id!;
+
+        if(req.params.id !== currentAuthenticatedUserId && !req.user?.roles.includes(UserRole.ADMIN)) {
+            throw Forbidden('Only admins can update other users');
+        }
+
         const userId = req.params.id;
         const userData: Partial<IUserCreate> = req.body;
         try {
             const user = await this.userService.updateUser(userId, userData);
             res.json(user);
         } catch (error: any) {
-            res.status(error.status).json({error: error.message});
+            res.status(error.status || 500).json(error);
         }
     };
 
@@ -194,7 +208,7 @@ export class UserController {
     routes() {
         this.router.post('/', this.createUser);
         this.router.get('/:id', this.getUserById);
-        this.router.put('/:id', this.updateUser);
+        this.router.put('/:id', this.authMiddleware.authenticate, this.updateUser);
         this.router.delete('/:id', this.authMiddleware.authenticate, this.authMiddleware.requireRoles([UserRole.ADMIN]), this.deleteUser);
         return this.router;
     }
