@@ -31,6 +31,7 @@
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.8.1",
     "multer": "^1.4.5-lts.1",
+    "nodemailer": "^6.9.16",
     "reflect-metadata": "^0.2.2",
     "supertest": "^7.0.0",
     "swagger-jsdoc": "^6.2.8",
@@ -48,6 +49,7 @@
     "@types/jsonwebtoken": "^9.0.7",
     "@types/multer": "^1.4.12",
     "@types/node": "^22.9.0",
+    "@types/nodemailer": "^6.4.17",
     "@types/supertest": "^6.0.2",
     "@types/swagger-jsdoc": "^6.0.4",
     "@types/swagger-ui-express": "^4.1.7",
@@ -58,6 +60,7 @@
     "nodemon": "^3.1.7",
     "ts-jest": "^29.2.5",
     "ts-node": "^10.9.2",
-    "typescript": "^5.6.3"
+    "typescript": "^5.6.3",
+    "uuid": "^11.0.3"
   }
 }

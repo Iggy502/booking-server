@@ -39,6 +39,13 @@ const userSchema = new mongoose.Schema<IUserDocument>(
             required: true,
             select: false,
         },
+        passwordResetToken: {
+            type: {
+                expires: {type: Date, required: true},
+                token: {type: String, required: true}
+            },
+            required: false
+        },
         roles: {
             type: [{
                 type: String,

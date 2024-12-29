@@ -38,7 +38,7 @@ const propertyController = container.resolve(PropertyController);
 app.use('/properties', propertyController.routes());
 
 const authController = container.resolve(AuthController);
-app.use('/auth', authController.routes());
+app.use(process.env.AUTH_BASE_URL || '/auth', authController.routes());
 
 const imageUploadController = container.resolve(ImageController);
 app.use('/images', imageUploadController.routes());
@@ -51,7 +51,8 @@ app.get('/', (req, res) => {
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
 
 
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
+
 app.listen(PORT, async () => {
     console.log(`Server is running on http://localhost:${PORT}`);
     try {

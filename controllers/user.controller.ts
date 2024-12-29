@@ -52,9 +52,14 @@ export class UserController {
      *                   example: Internal Server Error
      */
     createUser = async (req: Request, res: Response) => {
-        const userData: IUserCreate = req.body;
-        const user = await this.userService.createUser(userData);
-        res.status(201).json(user);
+        try {
+            const userData: IUserCreate = req.body;
+            const user = await this.userService.createUser(userData);
+            res.status(201).json(user);
+        } catch (error: any) {
+            res.status(error.status || 500).json(error);
+        }
+
     };
 
     /**
@@ -150,7 +155,7 @@ export class UserController {
 
         const currentAuthenticatedUserId = req.user?.id!;
 
-        if(req.params.id !== currentAuthenticatedUserId && !req.user?.roles.includes(UserRole.ADMIN)) {
+        if (req.params.id !== currentAuthenticatedUserId && !req.user?.roles.includes(UserRole.ADMIN)) {
             throw Forbidden('Only admins can update other users');
         }
 

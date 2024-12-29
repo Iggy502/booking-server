@@ -47,7 +47,39 @@ export class UserService {
         return this.mapToPropertyResponse(user);
     }
 
+    async updateUserPassword(token: string, newPassword: string): Promise<void> {
+        if (!token) {
+            throw BadRequest('Invalid token');
+        }
+
+        const user = await User.findOne({'passwordResetToken.token': token});
+
+        if (!user) {
+            throw BadRequest('Invalid or expired token');
+        }
+
+        const resetToken = user.passwordResetToken!;
+
+        if (resetToken && resetToken.expires < new Date()) {
+            throw BadRequest('Token expired');
+        }
+
+        await User.findByIdAndUpdate(user.id, {passwordResetToken: null, password: newPassword});
+
+    }
+
     async updateUser(userId: string, userData: IUserUpdate): Promise<IUserResponse> {
+        const findUserWithExistingEmailOrPhone = await User.findOne({
+            $and: [
+                {_id: {$ne: userId}},
+                {$or: [{email: userData.email}, {phone: userData.phone}]}
+            ]
+        });
+
+        if (findUserWithExistingEmailOrPhone) {
+            throw new BadRequest('User with this email or phone already exists');
+        }
+
         const user = await User.findByIdAndUpdate(userId, userData, {new: true});
 
         if (!user) {

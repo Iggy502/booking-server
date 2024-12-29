@@ -8,6 +8,7 @@ export interface TokenPayload {
     firstName: string;
     lastName: string;
     roles: UserRole[];
+    profilePicturePath?: string;
 }
 
 export interface RefreshTokenPayload {

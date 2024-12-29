@@ -7,6 +7,11 @@ export interface RefreshToken {
     lastUsed: Date;
 }
 
+export interface PasswordResetToken {
+    token: string;
+    expires: Date;
+}
+
 export interface IUserBase {
     email: string;
     firstName: string;
@@ -14,6 +19,7 @@ export interface IUserBase {
     phone: string;
     password: string;
     profilePicturePath?: string;
+    passwordResetToken?: PasswordResetToken;
     roles: UserRole[];
 }
 

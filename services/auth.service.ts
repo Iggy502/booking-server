@@ -1,10 +1,12 @@
 import {singleton} from "tsyringe";
 import {AuthUtils} from "../middleware/auth/utils/auth.utils";
 import {User} from "../models/user.model";
-import {IUserResponse} from "../models/interfaces";
+import {IUserResponse, PasswordResetToken} from "../models/interfaces";
 import {UnauthorizedError} from "../middleware/auth/exceptions/unauthorized.error";
 import {RefreshTokenPayload} from "../middleware/auth/types/token.type";
 import {InternalServerError, Unauthorized} from "http-errors";
+import nodemailer from 'nodemailer';
+import {getResetPasswordTemplateWithTokenValue} from "./util/password-reset-template";
 
 interface LoginResponse {
     user: IUserResponse;
@@ -108,6 +110,44 @@ export class AuthService {
         });
     }
 
+    async initResetPassword(email: string): Promise<void> {
+
+
+        const user = await User.findOne({email});
+
+        if (!user) {
+            throw Unauthorized('User Not Found');
+        }
+
+        // Generate reset token
+        const resetToken = this.authUtils.generatePasswordResetToken();
+
+        const userUpdated = await User.findByIdAndUpdate(user.id, {passwordResetToken: resetToken});
+
+        if (!userUpdated) {
+            throw InternalServerError('Failed to generate reset token');
+        }
+
+        const transporter = nodemailer.createTransport({
+            host: process.env.SMTP_HOST || 'smtp.gmail.com',
+            port: parseInt(process.env.SMTP_PORT || '587'),
+            secure: process.env.SMTP_SECURE === 'true', // true for 465, false for other ports
+            auth: {
+                user: process.env.SMTP_USER,
+                pass: process.env.SMTP_PASS
+            }
+        });
+
+        const mailOptions = {
+            from: '"No Reply" campspot-no-reply@gmail.com>',
+            to: email,
+            subject: 'Password Reset',
+            html: getResetPasswordTemplateWithTokenValue(resetToken.token)
+        };
+
+        await transporter.sendMail(mailOptions);
+
+    }
     async logoutAll(userId: string): Promise<void> {
         await User.findByIdAndUpdate(userId, {
             $set: {refreshTokens: []}

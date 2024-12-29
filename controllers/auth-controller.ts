@@ -4,11 +4,13 @@ import {AuthService} from '../services/auth.service';
 import {AuthRequest} from '../middleware/auth/types/token.type';
 import {AuthMiddleware} from '../middleware/auth/auth-middleware';
 import {AuthUtils} from "../middleware/auth/utils/auth.utils";
-import {Unauthorized} from "http-errors";
+import {BadRequest, Unauthorized} from "http-errors";
+import {UserService} from "../services/user.service";
 
 @singleton()
 export class AuthController {
     authService: AuthService;
+    userService: UserService;
     authMiddleware: AuthMiddleware;
     authUtils: AuthUtils;
     router: Router;
@@ -25,6 +27,7 @@ export class AuthController {
 
     constructor() {
         this.authService = container.resolve(AuthService);
+        this.userService = container.resolve(UserService);
         this.router = Router();
         this.authMiddleware = new AuthMiddleware();
         this.authUtils = new AuthUtils();
@@ -73,6 +76,43 @@ export class AuthController {
             res.status(error.status || 401).json(error);
         }
     };
+
+    initiatePasswordReset = async (req: Request, res: Response) => {
+        try {
+            const {email} = req.body;
+
+            if (!email) {
+                throw BadRequest('Email is required');
+            }
+
+            await this.authService.initResetPassword(email);
+
+            res.status(200).json({message: 'Password reset initiated successfully'});
+        } catch (error: any) {
+            res.status(error.status || 500).json(error);
+        }
+    }
+
+
+    confirmResetPassword = async (req: Request, res: Response) => {
+        const passwordResetToken = req.params.token;
+
+        try {
+            if (!passwordResetToken) {
+                throw BadRequest('Token is required');
+            }
+
+            const {newPassword} = req.body;
+            await this.userService.updateUserPassword(passwordResetToken, newPassword);
+
+            res.status(200).json({message: 'Password reset successfully'});
+        } catch (error: any) {
+            res.status(error.status || 500).json(error);
+        }
+
+
+    }
+
 
     /**
      * @swagger
@@ -217,6 +257,9 @@ export class AuthController {
         // Public routes
         this.router.post('/login', this.login);
         this.router.post('/refresh-token', this.refreshToken);
+        this.router.post('/initiate-password-reset', this.initiatePasswordReset);
+
+        this.router.put('/password-reset-confirm/:token', this.confirmResetPassword);
 
         // Protected routes
         this.router.post('/logout', this.authMiddleware.authenticate, this.logout);
