@@ -27,6 +27,7 @@ const userSchema = new mongoose.Schema<IUserDocument>(
         phone: {
             type: String,
             required: true,
+            unique: true,
             trim: true,
         },
         profilePicturePath: {

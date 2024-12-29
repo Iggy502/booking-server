@@ -1,8 +1,8 @@
 // Objective: User service to handle user operations
 import {User} from '../models/user.model';
-import {IUserCreate, IUserDocument, IUserResponse} from '../models/interfaces';
+import {IUserCreate, IUserDocument, IUserResponse, IUserUpdate} from '../models/interfaces';
 import {container, singleton} from 'tsyringe';
-import {NotFound} from "http-errors";
+import {BadRequest, NotFound} from "http-errors";
 import {ImageUploadService} from "./image.upload.service";
 
 
@@ -13,8 +13,19 @@ export class UserService {
 
 
     async createUser(userData: IUserCreate): Promise<IUserResponse> {
+        const findUserWithExistingEmailOrPhone = await User.findOne({
+            $or: [
+                {email: userData.email},
+                {phone: userData.phone}
+            ]
+        });
+
+        if (findUserWithExistingEmailOrPhone) {
+            throw new BadRequest('User with this email or phone already exists');
+        }
+
         const user = await User.create(userData);
-        return <IUserResponse>user.toObject();
+        return this.mapToPropertyResponse(user);
     }
 
     // Lazy getter for imageUploadService
@@ -36,7 +47,7 @@ export class UserService {
         return this.mapToPropertyResponse(user);
     }
 
-    async updateUser(userId: string, userData: Partial<IUserCreate>): Promise<IUserResponse> {
+    async updateUser(userId: string, userData: IUserUpdate): Promise<IUserResponse> {
         const user = await User.findByIdAndUpdate(userId, userData, {new: true});
 
         if (!user) {

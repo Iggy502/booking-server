@@ -19,10 +19,16 @@ export interface IUserBase {
 
 export interface IUserDocument extends IUserBase, Document {
     refreshTokens: RefreshToken[];
+
     comparePassword(candidatePassword: string): Promise<boolean>;
 }
 
-export interface IUserCreate extends IUserBase {
+export interface IUserCreate extends Omit<IUserBase, 'profilePicturePath'> {
+
+}
+
+export interface IUserUpdate extends Partial<IUserBase> {
+
 }
 
 export interface IUserResponse extends Omit<IUserBase, 'password'> {
