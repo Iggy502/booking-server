@@ -23,10 +23,10 @@ db.users.insertMany([
         roles: ['TEST'],
         createdAt: new Date(),
         updatedAt: new Date(),
-        profilePicturePath: 'https://media.tenor.com/miBvHR4Q68wAAAAe/dick-dickbutt.png'
+        profilePicturePath: 'profiles/test/eric-cartman.png'
     },
     {
-        email: 'moderator@example.com',
+        email: 'joske@example.com',
         firstName: 'Moderator',
         lastName: 'User',
         phone: '+1234567891',
@@ -34,7 +34,7 @@ db.users.insertMany([
         roles: ['TEST'],
         createdAt: new Date(),
         updatedAt: new Date(),
-        profilePicturePath: 'https://media.tenor.com/miBvHR4Q68wAAAAe/dick-dickbutt.png'
+        profilePicturePath: 'profiles/test/Original_Doge_meme.jpg'
 
     },
     {
@@ -87,7 +87,7 @@ db.users.insertMany([
 
 // Get user IDs for references
 const adminId = db.users.findOne({email: 'admin@example.com'})._id;
-const host1Id = db.users.findOne({email: 'host1@example.com'})._id;
+const joske = db.users.findOne({email: 'joske@example.com'})._id;
 const host2Id = db.users.findOne({email: 'host2@example.com'})._id;
 const guest1Id = db.users.findOne({email: 'guest1@example.com'})._id;
 const guest2Id = db.users.findOne({email: 'guest2@example.com'})._id;
@@ -118,9 +118,9 @@ db.properties.insertMany([
         createdAt: new Date(),
         updatedAt: new Date(),
         imagePaths: [
-            'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS_hIj4WY1eD5f5cJTHmLhUqimzDlVgK_XaIQ&s',
-            'https://img.hipcamp.com/images/dpr_2.0/f_auto,q_auto/v1514927749/journal/acjf7ycau00k2ggj76km/acjf7ycau00k2ggj76km.jpg?_i=AA',
-            'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ_8Vbdzgkhqq88HAmHvLJUB2JfXZ1NvAe4Ig&s'
+            'properties/676f38660b398366c48f1437/1735391442383-amxjmd.jpeg',
+            'properties/676f38660b398366c48f1437/1735390458853-06ili1.jpg',
+            'properties/676f38660b398366c48f1437/1735393941906-jge63c.jpg'
         ]
     },
     {
@@ -148,9 +148,9 @@ db.properties.insertMany([
         createdAt: new Date(),
         updatedAt: new Date(),
         imagePaths: [
-            'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS_hIj4WY1eD5f5cJTHmLhUqimzDlVgK_XaIQ&s',
-            'https://img.hipcamp.com/images/dpr_2.0/f_auto,q_auto/v1514927749/journal/acjf7ycau00k2ggj76km/acjf7ycau00k2ggj76km.jpg?_i=AA',
-            'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ_8Vbdzgkhqq88HAmHvLJUB2JfXZ1NvAe4Ig&s'
+            'properties/676f38660b398366c48f1437/1735391442383-amxjmd.jpeg',
+            'properties/676f38660b398366c48f1437/1735390458853-06ili1.jpg',
+            'properties/676f38660b398366c48f1437/1735393941906-jge63c.jpg'
         ]
     },
     {
@@ -178,9 +178,9 @@ db.properties.insertMany([
         createdAt: new Date(),
         updatedAt: new Date(),
         imagePaths: [
-            'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS_hIj4WY1eD5f5cJTHmLhUqimzDlVgK_XaIQ&s',
-            'https://img.hipcamp.com/images/dpr_2.0/f_auto,q_auto/v1514927749/journal/acjf7ycau00k2ggj76km/acjf7ycau00k2ggj76km.jpg?_i=AA',
-            'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ_8Vbdzgkhqq88HAmHvLJUB2JfXZ1NvAe4Ig&s'
+            'properties/676f38660b398366c48f1437/1735391442383-amxjmd.jpeg',
+            'properties/676f38660b398366c48f1437/1735390458853-06ili1.jpg',
+            'properties/676f38660b398366c48f1437/1735393941906-jge63c.jpg'
         ]
     },
     {
@@ -211,14 +211,14 @@ db.properties.insertMany([
         createdAt: new Date(),
         updatedAt: new Date(),
         imagePaths: [
-            'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS_hIj4WY1eD5f5cJTHmLhUqimzDlVgK_XaIQ&s',
-            'https://img.hipcamp.com/images/dpr_2.0/f_auto,q_auto/v1514927749/journal/acjf7ycau00k2ggj76km/acjf7ycau00k2ggj76km.jpg?_i=AA',
-            'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ_8Vbdzgkhqq88HAmHvLJUB2JfXZ1NvAe4Ig&s'
+            'properties/676f38660b398366c48f1437/1735391442383-amxjmd.jpeg',
+            'properties/676f38660b398366c48f1437/1735390458853-06ili1.jpg',
+            'properties/676f38660b398366c48f1437/1735393941906-jge63c.jpg'
         ]
     },
     {
         name: 'Antwerp Loft',
-        owner: host1Id,
+        owner: joske,
         description: 'Modern loft in the diamond district',
         address: {
             street: 'Pelikaanstraat 20',
@@ -253,9 +253,9 @@ db.properties.insertMany([
         createdAt: new Date(),
         updatedAt: new Date(),
         imagePaths: [
-            'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS_hIj4WY1eD5f5cJTHmLhUqimzDlVgK_XaIQ&s',
-            'https://img.hipcamp.com/images/dpr_2.0/f_auto,q_auto/v1514927749/journal/acjf7ycau00k2ggj76km/acjf7ycau00k2ggj76km.jpg?_i=AA',
-            'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ_8Vbdzgkhqq88HAmHvLJUB2JfXZ1NvAe4Ig&s'
+            'properties/676f38660b398366c48f1437/1735391442383-amxjmd.jpeg',
+            'properties/676f38660b398366c48f1437/1735390458853-06ili1.jpg',
+            'properties/676f38660b398366c48f1437/1735393941906-jge63c.jpg'
         ]
     }
 ]);
@@ -272,14 +272,18 @@ const loftAntwerp = db.properties.findOne({name: 'Antwerp Loft'})._id;
 db.bookings.insertMany([
     {
         property: canalHouse,
-        guest: guest1Id,
+        guest: joske,
         checkIn: new Date('2024-12-27'),
         checkOut: new Date('2025-01-7'),
         totalPrice: 1750,
         status: 'confirmed',
         numberOfGuests: 2,
         createdAt: new Date(),
-        updatedAt: new Date()
+        updatedAt: new Date(),
+        conversation: {
+            acvtive: true,
+            messages: []
+        }
     },
     {
         property: riversideVillaGhent,
@@ -290,7 +294,11 @@ db.bookings.insertMany([
         status: 'confirmed',
         numberOfGuests: 2,
         createdAt: new Date(),
-        updatedAt: new Date()
+        updatedAt: new Date(),
+        conversation: {
+            acvtive: true,
+            messages: []
+        }
     },
     {
         property: ardennesCabin,
@@ -301,7 +309,11 @@ db.bookings.insertMany([
         status: 'confirmed',
         numberOfGuests: 4,
         createdAt: new Date(),
-        updatedAt: new Date()
+        updatedAt: new Date(),
+        conversation: {
+            acvtive: true,
+            messages: []
+        }
     },
     {
         property: cityApartmentBrussels,
@@ -312,7 +324,11 @@ db.bookings.insertMany([
         status: 'pending',
         numberOfGuests: 2,
         createdAt: new Date(),
-        updatedAt: new Date()
+        updatedAt: new Date(),
+        conversation: {
+            acvtive: true,
+            messages: []
+        }
     },
     {
         property: loftAntwerp,
@@ -323,7 +339,11 @@ db.bookings.insertMany([
         status: 'confirmed',
         numberOfGuests: 6,
         createdAt: new Date(),
-        updatedAt: new Date()
+        updatedAt: new Date(),
+        conversation: {
+            acvtive: true,
+            messages: []
+        }
     },
     {
         property: canalHouse,
@@ -334,7 +354,11 @@ db.bookings.insertMany([
         status: 'pending',
         numberOfGuests: 3,
         createdAt: new Date(),
-        updatedAt: new Date()
+        updatedAt: new Date(),
+        conversation: {
+            acvtive: true,
+            messages: []
+        }
     }
 ]);
 

@@ -1,12 +1,12 @@
 //booking operations
 // Objective: Booking service to handle booking operations
 import {Booking} from '../models/booking.model';
-import {IBookingBase, IBookingCreate, IBookingDocument, IBookingResponse, IBookingUpdate} from '../models/interfaces';
+import {IBookingCreate, IBookingDocument, IBookingResponse, IBookingUpdate} from '../models/interfaces';
 import {Property} from "../models/property.model";
 import {injectable} from "tsyringe";
-import {HttpError} from "./exceptions/http-error";
 import {User} from "../models/user.model";
 import {BadRequest, InternalServerError, NotFound} from "http-errors";
+import {MessageRequest} from "../models/interfaces/chat.types";
 
 @injectable()
 export class BookingService {
@@ -136,9 +136,16 @@ export class BookingService {
         return bookings.map(booking => this.mapToBookingResponse(booking));
     }
 
+    async findMatchingBookingForConversation(conversationId: string) {
+        return Booking.findOne({'conversation._id': conversationId});
+    }
+
+
     private mapToBookingResponse(booking: IBookingDocument): IBookingResponse {
         return booking.toObject();
     }
+
+
 
     calculateDuration(endDate: Date, startDate: Date): number {
         return (endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24);
@@ -150,6 +157,18 @@ export class BookingService {
 
     validateCheckOutDate(checkIn: Date, checkOut: Date): boolean {
         return checkOut > checkIn;
+    }
+
+
+    async saveChatMessageForConversationAndRelatedBooking(message: MessageRequest): Promise<IBookingDocument> {
+        return Booking.findOne({'conversation._id': message.conversationId}).then(booking => {
+            if (!booking) {
+                throw NotFound('Booking not found for conversation');
+            }
+
+            booking.conversation.messages.push(message);
+            return booking.save();
+        });
     }
 }
 

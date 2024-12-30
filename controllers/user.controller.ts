@@ -5,7 +5,8 @@ import {IUserCreate, UserRole} from '../models/interfaces';
 import {container, singleton} from "tsyringe";
 import {AuthMiddleware} from "../middleware/auth/auth-middleware";
 import {AuthRequest} from "../middleware/auth/types/token.type";
-import {Forbidden} from "http-errors";
+import {BadRequest, Forbidden} from "http-errors";
+import {MessageRequest} from "../models/interfaces/chat.types";
 
 
 @singleton()
@@ -169,6 +170,26 @@ export class UserController {
         }
     };
 
+    saveChatMessage = async (req: AuthRequest, res: Response) => {
+        const message: MessageRequest = req.body;
+
+        if (!message) {
+            throw BadRequest('Message is required');
+        }
+
+        const currUserId = req.user?.id!;
+
+        try {
+            await this.userService.saveChatMessageForConversationWithUser(message, currUserId);
+            res.status(200).json({message: 'Message saved successfully'});
+        } catch (error: any) {
+            res.status(error.status || 500).json(error);
+
+        }
+
+
+    }
+
     /**
      * @swagger
      * /users/{id}:
@@ -213,6 +234,7 @@ export class UserController {
     routes() {
         this.router.post('/', this.createUser);
         this.router.get('/:id', this.getUserById);
+        this.router.post('/chat/message', this.authMiddleware.authenticate, this.saveChatMessage);
         this.router.put('/:id', this.authMiddleware.authenticate, this.updateUser);
         this.router.delete('/:id', this.authMiddleware.authenticate, this.authMiddleware.requireRoles([UserRole.ADMIN]), this.deleteUser);
         return this.router;

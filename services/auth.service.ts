@@ -6,7 +6,7 @@ import {UnauthorizedError} from "../middleware/auth/exceptions/unauthorized.erro
 import {RefreshTokenPayload} from "../middleware/auth/types/token.type";
 import {InternalServerError, Unauthorized} from "http-errors";
 import nodemailer from 'nodemailer';
-import {getResetPasswordTemplateWithTokenValue} from "./util/password-reset-template";
+import {getResetPasswordTemplateWithTokenValue} from "./util/templates/password-reset-template";
 
 interface LoginResponse {
     user: IUserResponse;

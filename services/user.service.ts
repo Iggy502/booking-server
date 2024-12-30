@@ -1,18 +1,28 @@
 // Objective: User service to handle user operations
 import {User} from '../models/user.model';
-import {IUserCreate, IUserDocument, IUserResponse, IUserUpdate} from '../models/interfaces';
+import {IBookingDocument, IUserCreate, IUserDocument, IUserResponse, IUserUpdate} from '../models/interfaces';
 import {container, singleton} from 'tsyringe';
-import {BadRequest, NotFound} from "http-errors";
-import {ImageUploadService} from "./image.upload.service";
+import {BadRequest, Forbidden, NotFound} from "http-errors";
+import {ImageConversionUtil} from "./util/image/image-conversion-util";
+import {MessageRequest} from "../models/interfaces/chat.types";
+import {BookingService} from "./booking.service";
+import {PropertyService} from "./property.service";
 
 
 @singleton()
 export class UserService {
 
-    private imageUploadService!: ImageUploadService;
+    private bookingService: BookingService;
+    private propertyService: PropertyService;
 
+    constructor() {
+        this.bookingService = container.resolve(BookingService);
+        this.propertyService = container.resolve(PropertyService);
+
+    }
 
     async createUser(userData: IUserCreate): Promise<IUserResponse> {
+
         const findUserWithExistingEmailOrPhone = await User.findOne({
             $or: [
                 {email: userData.email},
@@ -26,15 +36,6 @@ export class UserService {
 
         const user = await User.create(userData);
         return this.mapToPropertyResponse(user);
-    }
-
-    // Lazy getter for imageUploadService
-    // Avoids circular dependency issue
-    private getImageUploadService(): ImageUploadService {
-        if (!this.imageUploadService) {
-            this.imageUploadService = container.resolve(ImageUploadService);
-        }
-        return this.imageUploadService;
     }
 
     async getUserById(userId: string): Promise<IUserResponse> {
@@ -116,12 +117,34 @@ export class UserService {
         const userResponse = <IUserResponse>user.toObject();
 
         const imagesPathsFullUrl = userResponse.profilePicturePath ?
-            this.getImageUploadService().convertPathToUrl(userResponse.profilePicturePath) : null;
+            ImageConversionUtil.convertPathToUrl(userResponse.profilePicturePath, process.env.AWS_S3_BUCKET || '') : null;
 
         if (imagesPathsFullUrl) {
             return {...userResponse, profilePicturePath: imagesPathsFullUrl};
         }
 
         return userResponse;
+    }
+
+    async saveChatMessageForConversationWithUser(message: MessageRequest, userId: string): Promise<void> {
+        const bookingForConversation: IBookingDocument | null =
+            await this.bookingService.findMatchingBookingForConversation(message.conversationId);
+
+        if (!bookingForConversation) {
+            throw NotFound('Booking not found for conversation');
+        }
+
+        const relatedProperty = await this.propertyService.getPropertyById(bookingForConversation.property.toString());
+
+        if (!relatedProperty) {
+            throw NotFound('Property not found for booking linked to this conversation. Cannot verify the owner...');
+        }
+
+        if (relatedProperty.owner.toString() !== userId && bookingForConversation.guest.toString() !== userId) {
+            throw Forbidden('You do not have permission to send messages for this booking');
+        }
+
+        await this.bookingService.saveChatMessageForConversationAndRelatedBooking(message);
+
     }
 }

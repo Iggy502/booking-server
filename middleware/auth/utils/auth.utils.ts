@@ -3,6 +3,7 @@ import {IUserDocument, PasswordResetToken} from '../../../models/interfaces';
 import {RefreshTokenPayload, TokenPayload} from '../types/token.type';
 import {UnauthorizedError} from "../exceptions/unauthorized.error";
 import {v4 as uuidv4} from 'uuid';
+import {ImageConversionUtil} from "../../../services/util/image/image-conversion-util";
 
 
 export class AuthUtils {
@@ -11,7 +12,7 @@ export class AuthUtils {
         private readonly jwtExpiresIn: string = '15m',
         private readonly refreshSecret: string = process.env.REFRESH_SECRET || 'your-refresh-secret',
         private readonly refreshExpiresIn: string = '7d',
-        private readonly passwordResetExpiresIn: number = 1*60*60*1000 // 1 hour
+        private readonly passwordResetExpiresIn: number = 1 * 60 * 60 * 1000 // 1 hour
     ) {
     }
 
@@ -30,7 +31,7 @@ export class AuthUtils {
             firstName: user.firstName,
             lastName: user.lastName,
             roles: user.roles,
-            profilePicturePath: user.profilePicturePath
+            profilePicturePath: ImageConversionUtil.convertPathToUrl(user.profilePicturePath || '', process.env.AWS_S3_BUCKET || '')
         };
 
         return jwt.sign(payload, this.jwtSecret, {

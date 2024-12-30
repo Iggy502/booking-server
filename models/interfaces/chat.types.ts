@@ -3,7 +3,8 @@ import {Document, Types} from "mongoose";
 export interface Message {
     from: Types.ObjectId;      // User ID of sender
     to: Types.ObjectId;        // User ID of recipient
-    content: string;   // Message content
+    content: string
+    timestamp: Date;   // Message content
 }
 
 export interface Conversation {
@@ -11,11 +12,8 @@ export interface Conversation {
     messages: Message[];  // Array of messages in the conversation
 }
 
-export interface MessageResponse extends Message {
-    id: string;
-}
-
-export interface ConversationResponse extends Conversation {
+export interface MessageRequest extends Message {
+    conversationId: string;
     id: string;
 }
 

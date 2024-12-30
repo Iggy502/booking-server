@@ -18,11 +18,14 @@ const MessageSchema = new mongoose.Schema<IMessageDocument>({
             type: mongoose.Schema.Types.ObjectId,
             ref: 'User',
             required: true,
+        },
+        timestamp: {
+            type: Date,
+            default: Date.now,
         }
-
     },
     {
-        timestamps: true,
+        timestamps: false, //Will be custom timestamps
         toObject: {
             transform: (doc, ret) => {
                 ret.id = ret._id.toString();
@@ -39,7 +42,11 @@ const ConversationSchema = new mongoose.Schema<IConversationDocument>({
             type: Boolean,
             default: true,
         },
-        messages: [MessageSchema],
+        messages: {
+            type: [MessageSchema],
+            required: true,
+            default: []
+        },
     },
     {
         timestamps: true,

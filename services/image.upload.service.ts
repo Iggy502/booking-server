@@ -1,9 +1,10 @@
 import {container, injectable} from "tsyringe";
-import {DeleteObjectCommand, ListObjectsV2Command, PutObjectCommand, S3Client} from "@aws-sdk/client-s3";
+import {DeleteObjectsCommand, ListObjectsV2Command, PutObjectCommand, S3Client} from "@aws-sdk/client-s3";
 import {IPropertyResponse, IUserResponse} from "../models/interfaces";
 import {PropertyService} from "./property.service";
 import {UserService} from "./user.service";
 import {BadRequest, InternalServerError} from "http-errors";
+import {ImageConversionUtil} from "./util/image/image-conversion-util";
 
 export enum UploadType {
     PROPERTY = 'properties',
@@ -20,13 +21,14 @@ interface ProfileUploadOptions {
 
 @injectable()
 export class ImageUploadService {
+    private readonly bucket: string = process.env.AWS_S3_BUCKET || '';
+
     private s3Client: S3Client;
-    private bucket: string;
     private propertyService: PropertyService;
     private userService: UserService;
 
     constructor() {
-        this.bucket = process.env.AWS_S3_BUCKET || '';
+
         this.s3Client = new S3Client({
             region: process.env.AWS_REGION || 'us-east-1',
             credentials: {
@@ -81,25 +83,13 @@ export class ImageUploadService {
 
             console.log('Uploaded image to S3:', res);
 
-            const imageUrl = filePath
-            // `https://${this.bucket}.s3.${process.env.AWS_REGION}.amazonaws.com/${filePath}`;
-
-
-            return imageUrl;
+            return filePath;
         } catch (error) {
             console.error('Error uploading to S3:', error);
             throw error;
         }
     }
 
-    convertUrlToPath(url: string): string {
-        const path = url.replace(`https://${this.bucket}.s3.${process.env.AWS_REGION}.amazonaws.com/`, '');
-        return path;
-    }
-
-    convertPathToUrl(path: string): string {
-        return `https://${this.bucket}.s3.${process.env.AWS_REGION}.amazonaws.com/${path}`;
-    }
 
     private createPropertyImageFileName = (originalName: string): string => {
         const timestamp = Date.now();
@@ -117,34 +107,39 @@ export class ImageUploadService {
 
 
     uploadProfileImage = async (file: Express.Multer.File, options: ProfileUploadOptions): Promise<IUserResponse> => {
-        const url = await this.uploadImage(file, UploadType.PROFILE, options);
-        return this.userService.updateUserImages(options.userId, this.convertUrlToPath(url));
+        const imagePath = await this.uploadImage(file, UploadType.PROFILE, options);
+        return this.userService.updateUserImages(options.userId, imagePath);
     };
 
 
     uploadPropertyImages = async (files: Express.Multer.File[], options: PropertyUploadOptions): Promise<IPropertyResponse> => {
-        const urls = await Promise.all(files.map(async (file) => {
+        const imagePaths = await Promise.all(files.map(async (file) => {
             return this.uploadImage(file, UploadType.PROPERTY, options);
         }));
-        return this.propertyService.updatePropertyImages(options.propertyId, urls.map(url => this.convertUrlToPath(url)));
+        return this.propertyService.updatePropertyImages(options.propertyId, imagePaths);
     };
 
     async deletePropertyImage(propertyId: string, imagePathString: string) {
-        return this.deleteImage(imagePathString).then(() => {
+        return this.deleteImage(ImageConversionUtil.convertUrlToPath(imagePathString, this.bucket)).then(() => {
             return this.propertyService.removePropertyImage(propertyId, imagePathString);
         });
     }
 
     async deleteProfileImage(userId: string, imagePathString: string) {
-        return this.deleteImage(imagePathString).then(() => {
+        return this.deleteImage(ImageConversionUtil.convertUrlToPath(imagePathString, this.bucket)).then(() => {
             return this.userService.updateUser(userId, {profilePicturePath: ''});
         });
     }
 
     async deleteImage(path: string) {
-        const command = new DeleteObjectCommand({
+        const command = new DeleteObjectsCommand({
             Bucket: this.bucket,
-            Key: path
+            Delete: {
+                Objects: [
+                    {Key: path}
+                ],
+                Quiet: false
+            }
         });
 
         try {

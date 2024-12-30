@@ -13,6 +13,8 @@ import {GeocodingService} from "./geocoding.service";
 import {Booking} from "../models/booking.model";
 import {BadRequest, InternalServerError, NotFound} from "http-errors";
 import {ImageUploadService} from "./image.upload.service";
+import {ImageConversionUtil} from "./util/image/image-conversion-util";
+
 
 @injectable()
 export class PropertyService {
@@ -87,8 +89,10 @@ export class PropertyService {
 
     private mapToPropertyResponse(property: IPropertyDocument): IPropertyResponse {
         const propertyResponse = <IPropertyResponse>property.toObject();
+        const bucket = process.env.AWS_S3_BUCKET || '';
+
         const imagesPathsFullUrl = propertyResponse.imagePaths?.map(imagePath => {
-            return this.getImageUploadService().convertPathToUrl(imagePath);
+            return ImageConversionUtil.convertPathToUrl(imagePath, bucket);
         });
 
         if (imagesPathsFullUrl) {
@@ -277,7 +281,7 @@ export class PropertyService {
 
     async removePropertyImage(propertyId: string, imageURL: string) {
 
-        let imagePath = this.getImageUploadService().convertUrlToPath(imageURL);
+        let imagePath = ImageConversionUtil.convertUrlToPath(imageURL, process.env.AWS_S3_BUCKET || '');
 
         const propertyResult = await Property.findByIdAndUpdate(propertyId, {
             $pull: {imagePaths: imagePath}

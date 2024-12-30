@@ -25,7 +25,6 @@ export interface IUserBase {
 
 export interface IUserDocument extends IUserBase, Document {
     refreshTokens: RefreshToken[];
-
     comparePassword(candidatePassword: string): Promise<boolean>;
 }
 
