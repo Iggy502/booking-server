@@ -118,9 +118,9 @@ db.properties.insertMany([
         createdAt: new Date(),
         updatedAt: new Date(),
         imagePaths: [
-            'properties/676f38660b398366c48f1437/1735391442383-amxjmd.jpeg',
-            'properties/676f38660b398366c48f1437/1735390458853-06ili1.jpg',
-            'properties/676f38660b398366c48f1437/1735393941906-jge63c.jpg'
+            'properties/test/testpropimage1.webp',
+            'properties/test/testpropimage2.webp',
+            'properties/test/testpropimage3.webp'
         ]
     },
     {
@@ -148,9 +148,9 @@ db.properties.insertMany([
         createdAt: new Date(),
         updatedAt: new Date(),
         imagePaths: [
-            'properties/676f38660b398366c48f1437/1735391442383-amxjmd.jpeg',
-            'properties/676f38660b398366c48f1437/1735390458853-06ili1.jpg',
-            'properties/676f38660b398366c48f1437/1735393941906-jge63c.jpg'
+            'properties/test/testpropimage1.webp',
+            'properties/test/testpropimage2.webp',
+            'properties/test/testpropimage3.webp'
         ]
     },
     {
@@ -178,9 +178,9 @@ db.properties.insertMany([
         createdAt: new Date(),
         updatedAt: new Date(),
         imagePaths: [
-            'properties/676f38660b398366c48f1437/1735391442383-amxjmd.jpeg',
-            'properties/676f38660b398366c48f1437/1735390458853-06ili1.jpg',
-            'properties/676f38660b398366c48f1437/1735393941906-jge63c.jpg'
+            'properties/test/testpropimage1.webp',
+            'properties/test/testpropimage2.webp',
+            'properties/test/testpropimage3.webp'
         ]
     },
     {
@@ -211,9 +211,9 @@ db.properties.insertMany([
         createdAt: new Date(),
         updatedAt: new Date(),
         imagePaths: [
-            'properties/676f38660b398366c48f1437/1735391442383-amxjmd.jpeg',
-            'properties/676f38660b398366c48f1437/1735390458853-06ili1.jpg',
-            'properties/676f38660b398366c48f1437/1735393941906-jge63c.jpg'
+            'properties/test/testpropimage1.webp',
+            'properties/test/testpropimage2.webp',
+            'properties/test/testpropimage3.webp'
         ]
     },
     {
@@ -253,9 +253,9 @@ db.properties.insertMany([
         createdAt: new Date(),
         updatedAt: new Date(),
         imagePaths: [
-            'properties/676f38660b398366c48f1437/1735391442383-amxjmd.jpeg',
-            'properties/676f38660b398366c48f1437/1735390458853-06ili1.jpg',
-            'properties/676f38660b398366c48f1437/1735393941906-jge63c.jpg'
+            'properties/test/testpropimage1.webp',
+            'properties/test/testpropimage2.webp',
+            'properties/test/testpropimage3.webp'
         ]
     }
 ]);
