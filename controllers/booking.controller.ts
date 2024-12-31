@@ -187,15 +187,27 @@ export class BookingController {
      *               items:
      *                 $ref: '#/components/schemas/BookingResponse'
      */
-    getBookingsByUserId = async (req: Request, res: Response) => {
+    getBookingsByUserGuestId = async (req: Request, res: Response) => {
         const userId = req.params.userId as string;
         try {
-            const bookings = await this.bookingService.getBookingsByUserId(userId);
+            const bookings = await this.bookingService.getBookingsByUserGuestId(userId);
             res.status(200).json(bookings);
         } catch (error: any) {
             res.status(error.status || 500).json(error);
         }
     }
+
+
+    getBookingsByUserGuestOrHostId = async (req: Request, res: Response) => {
+        const userId = req.params.userId as string;
+        try {
+            const bookings = await this.bookingService.getBookingsByUserGuestOrHostId(userId);
+            res.status(200).json(bookings);
+        } catch (error: any) {
+            res.status(error.status || 500).json(error);
+        }
+    }
+
 
     //swagger documentation
     /**
@@ -365,9 +377,10 @@ export class BookingController {
     routes() {
         this.router.post('/', this.authMiddleware.authenticate, this.createBooking);
         this.router.get('/findByProperty/:propertyId', this.getBookingsByPropertyId);
+        this.router.get('/findByUserGuestOrHost/:userId', this.getBookingsByUserGuestOrHostId);
         this.router.post('/search', this.searchBookingsByPropertyIds);
         this.router.get('/:id', this.getBookingById);
-        this.router.get('/user/:userId', this.getBookingsByUserId);
+        this.router.get('/user/guest/:userId', this.getBookingsByUserGuestId);
         this.router.put('/:id', this.updateBooking);
         this.router.delete('/:id', this.deleteBooking);
         return this.router;

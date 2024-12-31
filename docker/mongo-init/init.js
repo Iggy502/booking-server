@@ -119,8 +119,8 @@ db.properties.insertMany([
         updatedAt: new Date(),
         imagePaths: [
             'properties/test/testpropimage1.webp',
-            'properties/test/testpropimage2.webp',
-            'properties/test/testpropimage3.webp'
+            'properties/test/testpropimage2.jpg',
+            'properties/test/testpropimage3.jpg'
         ]
     },
     {
@@ -149,8 +149,8 @@ db.properties.insertMany([
         updatedAt: new Date(),
         imagePaths: [
             'properties/test/testpropimage1.webp',
-            'properties/test/testpropimage2.webp',
-            'properties/test/testpropimage3.webp'
+            'properties/test/testpropimage2.jpg',
+            'properties/test/testpropimage3.jpg'
         ]
     },
     {
@@ -179,8 +179,8 @@ db.properties.insertMany([
         updatedAt: new Date(),
         imagePaths: [
             'properties/test/testpropimage1.webp',
-            'properties/test/testpropimage2.webp',
-            'properties/test/testpropimage3.webp'
+            'properties/test/testpropimage2.jpg',
+            'properties/test/testpropimage3.jpg'
         ]
     },
     {
@@ -212,8 +212,8 @@ db.properties.insertMany([
         updatedAt: new Date(),
         imagePaths: [
             'properties/test/testpropimage1.webp',
-            'properties/test/testpropimage2.webp',
-            'properties/test/testpropimage3.webp'
+            'properties/test/testpropimage2.jpg',
+            'properties/test/testpropimage3.jpg'
         ]
     },
     {
@@ -254,8 +254,8 @@ db.properties.insertMany([
         updatedAt: new Date(),
         imagePaths: [
             'properties/test/testpropimage1.webp',
-            'properties/test/testpropimage2.webp',
-            'properties/test/testpropimage3.webp'
+            'properties/test/testpropimage2.jpg',
+            'properties/test/testpropimage3.jpg'
         ]
     }
 ]);

@@ -1,12 +1,20 @@
 //booking operations
 // Objective: Booking service to handle booking operations
 import {Booking} from '../models/booking.model';
-import {IBookingCreate, IBookingDocument, IBookingResponse, IBookingUpdate} from '../models/interfaces';
+import {
+    IBookingCreate,
+    IBookingDocument,
+    IBookingResponse,
+    IBookingUpdate,
+    PopulatedBookingDocument,
+    PopulatedBookingResponse
+} from '../models/interfaces';
 import {Property} from "../models/property.model";
 import {injectable} from "tsyringe";
 import {User} from "../models/user.model";
 import {BadRequest, InternalServerError, NotFound} from "http-errors";
 import {MessageRequest} from "../models/interfaces/chat.types";
+import mongoose from "mongoose";
 
 @injectable()
 export class BookingService {
@@ -82,10 +90,53 @@ export class BookingService {
         return bookings.map(booking => this.mapToBookingResponse(booking));
     }
 
-    async getBookingsByUserId(userId: string): Promise<IBookingResponse[]> {
+    async getBookingsByUserGuestId(userId: string): Promise<IBookingResponse[]> {
         const bookings: IBookingDocument[] = await Booking.find({guest: userId});
         return bookings.map(booking => this.mapToBookingResponse(booking));
     }
+
+    async getBookingsByUserGuestOrHostId(userId: string): Promise<PopulatedBookingResponse[]> {
+        // First use aggregate to find matching bookings
+        const matchingBookings = await Booking.aggregate([
+            {
+                // Simple lookup just to match on owner
+                $lookup: {
+                    from: 'properties',
+                    localField: 'property',
+                    foreignField: '_id',
+                    as: 'propertyData'
+                }
+            },
+            {
+                $unwind: '$propertyData'
+            },
+            {
+                $match: {
+                    $or: [
+                        {guest: new mongoose.Types.ObjectId(userId)},
+                        {'propertyData.owner': new mongoose.Types.ObjectId(userId)}
+                    ]
+                }
+            },
+            {
+                // Only keep the booking _id for the subsequent populate
+                $project: {
+                    _id: 1
+                }
+            }
+        ]);
+
+        // Get the matching booking IDs
+        const bookingIds = matchingBookings.map(b => b._id);
+
+        const bookingsForIdsPopulated = await Booking.find({_id: {$in: bookingIds}})
+            .populate<PopulatedBookingDocument>('property')
+            .populate<PopulatedBookingDocument>('guest') as PopulatedBookingDocument[];
+
+
+        return bookingsForIdsPopulated.map(booking => this.mapToPopulatedBookingResponse(booking));
+    }
+
 
     async updateBooking(bookingId: string, bookingData: IBookingUpdate): Promise<IBookingResponse> {
 
@@ -142,9 +193,12 @@ export class BookingService {
 
 
     private mapToBookingResponse(booking: IBookingDocument): IBookingResponse {
-        return booking.toObject();
+        return booking.toObject() as IBookingResponse;
     }
 
+    private mapToPopulatedBookingResponse(booking: PopulatedBookingDocument): PopulatedBookingResponse {
+        return booking.toObject() as PopulatedBookingResponse;
+    }
 
 
     calculateDuration(endDate: Date, startDate: Date): number {

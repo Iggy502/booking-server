@@ -14,15 +14,21 @@ export interface Conversation {
 
 export interface MessageRequest extends Message {
     conversationId: string;
+}
+
+export interface ConversationResponse extends Conversation {
     id: string;
+}
+
+export interface ImessageResponse extends Message {
+
 }
 
 
 export interface IMessageDocument extends Message, Document {
-
 }
 
 
 export interface IConversationDocument extends Conversation, Document {
-
+    messages: IMessageDocument[];
 }
