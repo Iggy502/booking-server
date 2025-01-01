@@ -19,6 +19,10 @@ const MessageSchema = new mongoose.Schema<IMessageDocument>({
             ref: 'User',
             required: true,
         },
+        read: {
+            type: Boolean,
+            default: false,
+        },
         timestamp: {
             type: Date,
             default: Date.now,

@@ -220,7 +220,7 @@ export class BookingService {
                 throw NotFound('Booking not found for conversation');
             }
 
-            booking.conversation.messages.push(message);
+            booking.conversation.messages.push({...message, read: false});
             return booking.save();
         });
     }

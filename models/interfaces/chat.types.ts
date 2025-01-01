@@ -4,7 +4,8 @@ export interface Message {
     from: Types.ObjectId;      // User ID of sender
     to: Types.ObjectId;        // User ID of recipient
     content: string
-    timestamp: Date;   // Message content
+    timestamp: Date;
+    read : boolean;
 }
 
 export interface Conversation {

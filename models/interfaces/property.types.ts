@@ -29,8 +29,7 @@ export interface IPropertyDocument extends IPropertyBase, Document {
 export interface IPropertyCreate extends Omit<IPropertyBase, 'imagePaths'> {
 }
 
-export interface IPropertyUpdate extends Partial<IPropertyBase> {
-    imagePaths?: never; //imagePaths should be updated separately
+export interface IPropertyUpdate extends Partial<IPropertyCreate> {
 }
 
 export interface IPropertyResponse extends IPropertyBase {
