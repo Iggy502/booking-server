@@ -1,6 +1,6 @@
 // src/models/booking.model.ts
 import mongoose from 'mongoose';
-import {IBookingDocument, IBookingModel, IUserModel} from './interfaces';
+import {IBookingDocument, IBookingModel} from './interfaces';
 import {IConversationDocument, IMessageDocument} from "./interfaces/chat.types";
 
 
