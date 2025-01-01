@@ -281,7 +281,7 @@ db.bookings.insertMany([
         createdAt: new Date(),
         updatedAt: new Date(),
         conversation: {
-            acvtive: true,
+            active: true,
             messages: []
         }
     },
@@ -296,7 +296,7 @@ db.bookings.insertMany([
         createdAt: new Date(),
         updatedAt: new Date(),
         conversation: {
-            acvtive: true,
+            active: true,
             messages: []
         }
     },
@@ -311,7 +311,7 @@ db.bookings.insertMany([
         createdAt: new Date(),
         updatedAt: new Date(),
         conversation: {
-            acvtive: true,
+            active: true,
             messages: []
         }
     },
@@ -326,7 +326,7 @@ db.bookings.insertMany([
         createdAt: new Date(),
         updatedAt: new Date(),
         conversation: {
-            acvtive: true,
+            active: true,
             messages: []
         }
     },
@@ -341,7 +341,7 @@ db.bookings.insertMany([
         createdAt: new Date(),
         updatedAt: new Date(),
         conversation: {
-            acvtive: true,
+            active: true,
             messages: []
         }
     },
@@ -356,7 +356,7 @@ db.bookings.insertMany([
         createdAt: new Date(),
         updatedAt: new Date(),
         conversation: {
-            acvtive: true,
+            active: true,
             messages: []
         }
     }
