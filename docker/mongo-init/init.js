@@ -1,3 +1,5 @@
+
+
 db = db.getSiblingDB('booking_db');
 
 // Create collections
@@ -281,6 +283,7 @@ db.bookings.insertMany([
         createdAt: new Date(),
         updatedAt: new Date(),
         conversation: {
+            _id: new ObjectId(),
             active: true,
             messages: []
         }
@@ -296,6 +299,7 @@ db.bookings.insertMany([
         createdAt: new Date(),
         updatedAt: new Date(),
         conversation: {
+            _id: new ObjectId(),
             active: true,
             messages: []
         }
@@ -311,6 +315,7 @@ db.bookings.insertMany([
         createdAt: new Date(),
         updatedAt: new Date(),
         conversation: {
+            _id: new ObjectId(),
             active: true,
             messages: []
         }
@@ -326,6 +331,7 @@ db.bookings.insertMany([
         createdAt: new Date(),
         updatedAt: new Date(),
         conversation: {
+            _id: new ObjectId(),
             active: true,
             messages: []
         }
@@ -341,6 +347,7 @@ db.bookings.insertMany([
         createdAt: new Date(),
         updatedAt: new Date(),
         conversation: {
+            _id: new ObjectId(),
             active: true,
             messages: []
         }
@@ -356,6 +363,7 @@ db.bookings.insertMany([
         createdAt: new Date(),
         updatedAt: new Date(),
         conversation: {
+            _id: new ObjectId(),
             active: true,
             messages: []
         }

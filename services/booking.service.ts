@@ -10,14 +10,22 @@ import {
     PopulatedBookingResponse
 } from '../models/interfaces';
 import {Property} from "../models/property.model";
-import {injectable} from "tsyringe";
+import {container, injectable} from "tsyringe";
 import {User} from "../models/user.model";
-import {BadRequest, InternalServerError, NotFound} from "http-errors";
+import {BadRequest, Forbidden, InternalServerError, NotFound} from "http-errors";
 import {MessageRequest} from "../models/interfaces/chat.types";
-import mongoose from "mongoose";
+import mongoose, {mongo, Schema, Types} from "mongoose";
+import {PropertyService} from "./property.service";
+
 
 @injectable()
 export class BookingService {
+
+    private propertyService: PropertyService;
+
+    constructor() {
+        this.propertyService = container.resolve(PropertyService);
+    }
 
     async createBooking(bookingData: IBookingCreate): Promise<IBookingResponse> {
 
@@ -130,8 +138,19 @@ export class BookingService {
         const bookingIds = matchingBookings.map(b => b._id);
 
         const bookingsForIdsPopulated = await Booking.find({_id: {$in: bookingIds}})
-            .populate<PopulatedBookingDocument>('property')
-            .populate<PopulatedBookingDocument>('guest') as PopulatedBookingDocument[];
+            .populate<PopulatedBookingDocument>({
+                path: 'property',
+                select: 'name owner',
+                populate: {
+                    path: 'owner',
+                    select: 'firstName lastName profilePicturePath'
+                }
+            })
+            .populate<PopulatedBookingDocument>({
+                path: 'guest',
+                select: 'firstName lastName profilePicturePath'
+            }).select('id property guest conversation').exec()
+            .then(bookings => bookings as PopulatedBookingDocument[]);
 
 
         return bookingsForIdsPopulated.map(booking => this.mapToPopulatedBookingResponse(booking));
@@ -220,10 +239,42 @@ export class BookingService {
                 throw NotFound('Booking not found for conversation');
             }
 
-            booking.conversation.messages.push({...message, read: false});
+            booking.conversation.messages.push({
+                ...message,
+                from: new mongoose.Types.ObjectId(message.from),
+                to: new mongoose.Types.ObjectId(message.to),
+                read: false
+            });
             return booking.save();
         });
     }
+
+    async markConversationAsRead(conversationId: string, userId: string) {
+        const bookingForConversation: IBookingDocument | null =
+            await this.findMatchingBookingForConversation(conversationId);
+
+        if (!bookingForConversation) {
+            throw NotFound('Booking not found for conversation');
+        }
+
+        const relatedProperty = await this.propertyService.getPropertyById(bookingForConversation.property.toString());
+
+        if (!relatedProperty) {
+            throw NotFound('Property not found for booking linked to this conversation. Cannot verify the owner...');
+        }
+
+        if (relatedProperty.owner.toString() !== userId && bookingForConversation.guest.toString() !== userId) {
+            throw Forbidden('You do not have permission to update the conversation status');
+        }
+
+        bookingForConversation.conversation.messages.forEach((message) => {
+            message.read = true;
+        });
+
+        return bookingForConversation.save();
+
+    }
+
 }
 
 

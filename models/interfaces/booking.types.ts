@@ -27,6 +27,8 @@ export interface IBookingCreate extends Omit<IBookingBase, 'totalPrice' | 'statu
 }
 
 export interface IBookingUpdate extends Partial<Omit<IBookingBase, 'property' | 'guest'>> {
+    readonly property?: Types.ObjectId;
+    readonly guest?: Types.ObjectId;
 }
 
 
@@ -37,14 +39,22 @@ export interface IBookingResponse extends IBookingBase {
 
 // Note: PopulatedBookingDocument should match BookingWithPopulated
 export interface PopulatedBookingDocument extends Omit<IBookingDocument, 'property' | 'guest' | 'conversation'> {
-    property: IPropertyDocument;
-    guest: IUserDocument;
+    property: Pick<PopulatedPropertyDocument, 'name' | 'owner'>;
+    guest: Pick<IUserDocument, 'firstName' | 'lastName' | 'profilePicturePath'>;
     conversation: IConversationDocument;
+}
+
+export interface PopulatedPropertyDocument extends Omit<IPropertyDocument, 'owner'> {
+    owner: IUserDocument;
+}
+
+export interface PopulatedPropertyResponse extends Omit<IPropertyResponse, 'owner'> {
+    owner: IUserResponse;
 }
 
 
 export interface PopulatedBookingResponse extends Omit<IBookingResponse, 'property' | 'guest' | 'conversation'> {
-    property: IPropertyResponse;
-    guest: IUserResponse;
+    property: Pick<PopulatedPropertyResponse, 'name' | 'owner'>;
+    guest: Pick<IUserResponse, 'firstName' | 'lastName' | 'profilePicturePath'>;
     conversation: ConversationResponse;
 }

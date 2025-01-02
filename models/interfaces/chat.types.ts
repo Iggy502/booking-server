@@ -5,7 +5,7 @@ export interface Message {
     to: Types.ObjectId;        // User ID of recipient
     content: string
     timestamp: Date;
-    read : boolean;
+    read: boolean;
 }
 
 export interface Conversation {
@@ -13,8 +13,10 @@ export interface Conversation {
     messages: Message[];  // Array of messages in the conversation
 }
 
-export interface MessageRequest extends Message {
+export interface MessageRequest extends Omit<Message, 'from' | 'to'> {
     conversationId: string;
+    from: string;
+    to: string;
 }
 
 export interface ConversationResponse extends Conversation {

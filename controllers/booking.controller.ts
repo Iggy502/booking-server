@@ -209,6 +209,19 @@ export class BookingController {
     }
 
 
+    markConversationAsRead = async (req: AuthRequest, res: Response) => {
+        try {
+            const conversationId = req.params.conversationId;
+            const userId = req.user?.id!;
+
+            await this.bookingService.markConversationAsRead(conversationId, userId);
+            res.status(200).json({message: 'Conversation marked as read'});
+        } catch (error: any) {
+            res.status(error.status || 500).json(error);
+        }
+    }
+
+
     //swagger documentation
     /**
      * @swagger
@@ -374,6 +387,7 @@ export class BookingController {
         }
     };
 
+
     routes() {
         this.router.post('/', this.authMiddleware.authenticate, this.createBooking);
         this.router.get('/findByProperty/:propertyId', this.getBookingsByPropertyId);
@@ -383,6 +397,7 @@ export class BookingController {
         this.router.get('/user/guest/:userId', this.getBookingsByUserGuestId);
         this.router.put('/:id', this.updateBooking);
         this.router.delete('/:id', this.deleteBooking);
+        this.router.put('/conversation/:conversationId/read', this.authMiddleware.authenticate, this.markConversationAsRead);
         return this.router;
     }
 
