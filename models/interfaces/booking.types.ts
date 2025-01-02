@@ -45,7 +45,7 @@ export interface PopulatedBookingDocument extends Omit<IBookingDocument, 'proper
 }
 
 export interface PopulatedPropertyDocument extends Omit<IPropertyDocument, 'owner'> {
-    owner: IUserDocument;
+    owner: Pick<IUserDocument, 'firstName' | 'lastName' | 'profilePicturePath'>;
 }
 
 export interface PopulatedPropertyResponse extends Omit<IPropertyResponse, 'owner'> {

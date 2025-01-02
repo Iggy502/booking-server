@@ -14,8 +14,9 @@ import {container, injectable} from "tsyringe";
 import {User} from "../models/user.model";
 import {BadRequest, Forbidden, InternalServerError, NotFound} from "http-errors";
 import {MessageRequest} from "../models/interfaces/chat.types";
-import mongoose, {mongo, Schema, Types} from "mongoose";
+import mongoose from "mongoose";
 import {PropertyService} from "./property.service";
+import {ImageConversionUtil} from "./util/image/image-conversion-util";
 
 
 @injectable()
@@ -216,7 +217,22 @@ export class BookingService {
     }
 
     private mapToPopulatedBookingResponse(booking: PopulatedBookingDocument): PopulatedBookingResponse {
-        return booking.toObject() as PopulatedBookingResponse;
+
+
+        let bookingObject = booking.toObject() as PopulatedBookingResponse;
+
+        if (bookingObject?.property?.owner?.profilePicturePath) {
+            bookingObject.property.owner.profilePicturePath = ImageConversionUtil
+                .convertPathToUrl(bookingObject.property.owner.profilePicturePath, process.env.AWS_S3_BUCKET || '');
+        }
+
+        if (bookingObject?.guest?.profilePicturePath) {
+            bookingObject.guest.profilePicturePath =
+                ImageConversionUtil.convertPathToUrl(bookingObject.guest.profilePicturePath, process.env.AWS_S3_BUCKET || '');
+        }
+
+
+        return bookingObject;
     }
 
 

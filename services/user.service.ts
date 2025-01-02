@@ -35,7 +35,7 @@ export class UserService {
         }
 
         const user = await User.create(userData);
-        return this.mapToPropertyResponse(user);
+        return this.mapToUserResponse(user);
     }
 
     async getUserById(userId: string): Promise<IUserResponse> {
@@ -45,7 +45,7 @@ export class UserService {
             throw NotFound('User not found');
         }
 
-        return this.mapToPropertyResponse(user);
+        return this.mapToUserResponse(user);
     }
 
     async updateUserPassword(token: string, newPassword: string): Promise<void> {
@@ -87,7 +87,7 @@ export class UserService {
             throw NotFound('User not found');
         }
 
-        return this.mapToPropertyResponse(user);
+        return this.mapToUserResponse(user);
     }
 
     async deleteUser(userId: string): Promise<IUserResponse> {
@@ -97,7 +97,7 @@ export class UserService {
             throw NotFound('User not found');
         }
 
-        return this.mapToPropertyResponse(user);
+        return this.mapToUserResponse(user);
     }
 
     async updateUserImages(userId: string, newProfilePicPath: string): Promise<IUserResponse> {
@@ -108,19 +108,21 @@ export class UserService {
             throw NotFound('User not found');
         }
 
-        return this.mapToPropertyResponse(user);
+        return this.mapToUserResponse(user);
 
     }
 
 
-    private mapToPropertyResponse(user: IUserDocument): IUserResponse {
+    public mapToUserResponse(user: IUserDocument): IUserResponse {
         const userResponse = <IUserResponse>user.toObject();
 
-        const imagesPathsFullUrl = userResponse.profilePicturePath ?
-            ImageConversionUtil.convertPathToUrl(userResponse.profilePicturePath, process.env.AWS_S3_BUCKET || '') : null;
+        if (userResponse.profilePicturePath) {
+            const imagesPathsFullUrl =
+                ImageConversionUtil.convertPathToUrl(userResponse.profilePicturePath, process.env.AWS_S3_BUCKET || '');
 
-        if (imagesPathsFullUrl) {
-            return {...userResponse, profilePicturePath: imagesPathsFullUrl};
+            if (imagesPathsFullUrl) {
+                return {...userResponse, profilePicturePath: imagesPathsFullUrl};
+            }
         }
 
         return userResponse;

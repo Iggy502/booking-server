@@ -48,7 +48,7 @@ db.users.insertMany([
         roles: ['TEST'],
         createdAt: new Date(),
         updatedAt: new Date(),
-        profilePicturePath: 'https://media.tenor.com/miBvHR4Q68wAAAAe/dick-dickbutt.png'
+        profilePicturePath: 'profiles/test/Mike_meme.png'
 
     },
     {
@@ -60,7 +60,7 @@ db.users.insertMany([
         roles: ['TEST'],
         createdAt: new Date(),
         updatedAt: new Date(),
-        profilePicturePath: 'https://media.tenor.com/miBvHR4Q68wAAAAe/dick-dickbutt.png'
+        profilePicturePath: 'profiles/test/yoda.png'
 
     },
     {
@@ -72,7 +72,7 @@ db.users.insertMany([
         roles: ['TEST'],
         createdAt: new Date(),
         updatedAt: new Date(),
-        profilePicturePath: 'https://media.tenor.com/miBvHR4Q68wAAAAe/dick-dickbutt.png'
+        profilePicturePath: 'profiles/test/lelz.png'
     },
     {
         email: 'guest2@example.com',
@@ -83,7 +83,7 @@ db.users.insertMany([
         roles: ['TEST'],
         createdAt: new Date(),
         updatedAt: new Date(),
-        profilePicturePath: 'https://media.tenor.com/miBvHR4Q68wAAAAe/dick-dickbutt.png'
+        profilePicturePath: 'profiles/test/shrek.png'
     }
 ]);
 
