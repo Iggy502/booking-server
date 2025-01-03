@@ -1,7 +1,12 @@
 // src/models/types/booking.index.ts
 import {Document, Types} from 'mongoose';
 import {Conversation, ConversationResponse, IConversationDocument} from "./chat.types";
-import {IPropertyDocument, IPropertyResponse} from "./property.types";
+import {
+    IPropertyDocument,
+    IPropertyResponse,
+    PopulatedPropertyDocument,
+    PopulatedPropertyResponse
+} from "./property.types";
 import {IUserDocument, IUserResponse} from "./user.types";
 
 export type BookingStatus = 'pending' | 'confirmed' | 'cancelled';
@@ -44,13 +49,7 @@ export interface PopulatedBookingDocument extends Omit<IBookingDocument, 'proper
     conversation: IConversationDocument;
 }
 
-export interface PopulatedPropertyDocument extends Omit<IPropertyDocument, 'owner'> {
-    owner: Pick<IUserDocument, 'firstName' | 'lastName' | 'profilePicturePath'>;
-}
 
-export interface PopulatedPropertyResponse extends Omit<IPropertyResponse, 'owner'> {
-    owner: IUserResponse;
-}
 
 
 export interface PopulatedBookingResponse extends Omit<IBookingResponse, 'property' | 'guest' | 'conversation'> {

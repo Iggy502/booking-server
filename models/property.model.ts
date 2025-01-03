@@ -38,6 +38,16 @@ const propertySchema = new mongoose.Schema<IPropertyDocument>(
             required: true,
             min: 0,
         },
+        avgRating: {
+            type: Number,
+            required: true,
+            default: 0,
+        },
+        totalRatings: {
+            type: Number,
+            required: true,
+            default: 0,
+        },
         maxGuests: {
             type: Number,
             required: true,
@@ -73,7 +83,7 @@ const propertySchema = new mongoose.Schema<IPropertyDocument>(
                 },
                 message: 'Duplicate amenity types are not allowed'
             }
-        }
+        },
     },
     {
         timestamps: true,
@@ -88,9 +98,10 @@ const propertySchema = new mongoose.Schema<IPropertyDocument>(
     }
 );
 
+
 // Pre-save middleware to ensure validators run on updates
-propertySchema.pre('findOneAndUpdate', function(next) {
-    this.setOptions({ runValidators: true });
+propertySchema.pre('findOneAndUpdate', function (next) {
+    this.setOptions({runValidators: true});
     next();
 });
 

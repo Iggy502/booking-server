@@ -6,15 +6,19 @@ import {IPropertyCreate, UserRole} from '../models/interfaces';
 import {AuthMiddleware} from "../middleware/auth/auth-middleware";
 import {AuthRequest} from "../middleware/auth/types/token.type";
 import {BadRequest, Forbidden, Unauthorized} from "http-errors";
+import {RatingService} from "../services/rating.service";
+import {IRatingCreate} from "../models/interfaces/rating.types";
 
 @singleton()
 export class PropertyController {
     propertyService: PropertyService;
+    ratingService: RatingService;
     authMiddleware: AuthMiddleware;
     router: Router;
 
     constructor() {
         this.propertyService = container.resolve(PropertyService);
+        this.ratingService = container.resolve(RatingService);
         this.authMiddleware = new AuthMiddleware();
         this.router = Router();
     }
@@ -509,6 +513,93 @@ export class PropertyController {
     }
 
 
+    createRating = async (req: AuthRequest, res: Response) => {
+        const currentAuthenticatedUserId = req.user?.id!;
+        const ratingData: IRatingCreate = req.body;
+
+        try {
+            if (!ratingData) {
+                throw BadRequest('No rating data provided');
+            }
+
+            if (currentAuthenticatedUserId !== ratingData?.user) {
+                throw Forbidden('You can only create a rating for yourself');
+            }
+
+            const ratingsWithLatestAdded = await this.ratingService.createRating(ratingData);
+            res.status(201).json(ratingsWithLatestAdded);
+        } catch (error: any) {
+            res.status(error.status || 500).json(error);
+        }
+    }
+
+
+    deleteRating = async (req: Request, res: Response) => {
+        const ratingId = req.params.id;
+        try {
+            if (!ratingId) {
+                throw BadRequest('Rating ID is required');
+            }
+
+            const latestRatingsRefreshed = await this.ratingService.deleteRating(ratingId);
+            res.status(200).json(latestRatingsRefreshed);
+        } catch (error: any) {
+            res.status(error.status || 500).json(error);
+        }
+    }
+
+    updateRating = async (req: Request, res: Response) => {
+
+        const ratingId = req.params.id;
+        const ratingData: Partial<Pick<IRatingCreate, 'rating' | 'review'>> = req.body;
+
+        try {
+            if (!ratingId) {
+                throw BadRequest('Rating ID is required');
+            }
+
+            if (!ratingData) {
+                throw BadRequest('Rating data is required');
+            }
+
+            const rating = await this.ratingService.updateRating(ratingId, ratingData);
+            res.status(200).json(rating);
+        } catch (error: any) {
+            res.status(error.status || 500).json(error);
+        }
+    }
+
+    toggleRatingHelpfulForUser = async (req: AuthRequest, res: Response) => {
+        const ratingId = req.params.id;
+        const currAuthenticatedUserId = req.user?.id!;
+
+        try {
+            if (!ratingId) {
+                throw BadRequest('Rating ID is required');
+            }
+
+            const rating = await this.ratingService.toggleHelpful(ratingId, currAuthenticatedUserId);
+            res.status(200).json(rating);
+        } catch (error: any) {
+            res.status(error.status || 500).json(error);
+        }
+    }
+
+    getRatingsForProperty = async (req: Request, res: Response) => {
+        const propertyId = req.params.propertyId;
+        try {
+            if (!propertyId) {
+                throw BadRequest('Property ID is required');
+            }
+
+            const ratings = await this.ratingService.getPopulatedRatingsByPropertyId(propertyId);
+            res.status(200).json(ratings);
+        } catch (error: any) {
+            res.status(error.status || 500).json(error);
+        }
+    }
+
+
     //router
     routes() {
         this.router.post('/', this.authMiddleware.authenticate, this.createProperty);
@@ -519,6 +610,11 @@ export class PropertyController {
         this.router.get('/findByUser/:userId', this.authMiddleware.authenticate, this.getPropertiesForUser);
         this.router.get('/', this.getAllProperties);
         this.router.put('/:id/available', this.authMiddleware.authenticate, this.authMiddleware.requireRoles([UserRole.USER]), this.makePropertyAvailable);
+        this.router.post('/ratings', this.authMiddleware.authenticate, this.createRating);
+        this.router.put('/ratings/:id', this.authMiddleware.authenticate, this.updateRating);
+        this.router.delete('/ratings/:id', this.authMiddleware.authenticate, this.deleteRating);
+        this.router.put('/ratings/:id/helpful', this.authMiddleware.authenticate, this.toggleRatingHelpfulForUser);
+        this.router.get('/:propertyId/ratings', this.getRatingsForProperty);
         return this.router;
     }
 }

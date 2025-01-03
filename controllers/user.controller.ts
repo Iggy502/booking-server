@@ -7,6 +7,7 @@ import {AuthMiddleware} from "../middleware/auth/auth-middleware";
 import {AuthRequest} from "../middleware/auth/types/token.type";
 import {BadRequest, Forbidden} from "http-errors";
 import {MessageRequest} from "../models/interfaces/chat.types";
+import {IRatingCreate} from "../models/interfaces/rating.types";
 
 
 @singleton()
@@ -231,6 +232,11 @@ export class UserController {
         }
     };
 
+
+
+
+
+
     routes() {
         this.router.post('/', this.createUser);
         this.router.get('/:id', this.getUserById);
@@ -239,4 +245,6 @@ export class UserController {
         this.router.delete('/:id', this.authMiddleware.authenticate, this.authMiddleware.requireRoles([UserRole.ADMIN]), this.deleteUser);
         return this.router;
     }
+
+
 }

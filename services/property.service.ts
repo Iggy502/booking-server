@@ -14,6 +14,7 @@ import {Booking} from "../models/booking.model";
 import {BadRequest, InternalServerError, NotFound} from "http-errors";
 import {ImageUploadService} from "./image.upload.service";
 import {ImageConversionUtil} from "./util/image/image-conversion-util";
+import {UserService} from "./user.service";
 
 
 @injectable()
@@ -89,10 +90,9 @@ export class PropertyService {
 
     private mapToPropertyResponse(property: IPropertyDocument): IPropertyResponse {
         const propertyResponse = <IPropertyResponse>property.toObject();
-        const bucket = process.env.AWS_S3_BUCKET || '';
 
         const imagesPathsFullUrl = propertyResponse.imagePaths?.map(imagePath => {
-            return ImageConversionUtil.convertPathToUrl(imagePath, bucket);
+            return ImageConversionUtil.convertPathToUrl(imagePath, process.env.AWS_S3_BUCKET || '');
         });
 
         if (imagesPathsFullUrl) {
@@ -230,7 +230,7 @@ export class PropertyService {
 
     async updateProperty(propertyId: string, propertyData: IPropertyUpdate): Promise<IPropertyResponse> {
         try {
-            let updateData = {...propertyData};
+            let updateData: IPropertyUpdate = {...propertyData};
 
             // If address is being updated, get new coordinates
             if (propertyData.address) {

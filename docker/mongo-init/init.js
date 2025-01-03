@@ -1,11 +1,10 @@
-
-
 db = db.getSiblingDB('booking_db');
 
 // Create collections
 db.createCollection('users');
 db.createCollection('properties');
 db.createCollection('bookings');
+db.createCollection('ratings');
 
 // Create indexes
 db.users.createIndex({email: 1}, {unique: true});
@@ -369,5 +368,73 @@ db.bookings.insertMany([
         }
     }
 ]);
+
+//Insert sample ratings for properties
+db.ratings.insertMany([
+    {
+        property: canalHouse,
+        user: joske,
+        rating: 1,
+        review: 'Trekt op niks',
+        helpful: [guest1Id, guest2Id],
+        createdAt: new Date(),
+        updatedAt: new Date()
+    },
+    {
+        property: canalHouse,
+        user: guest1Id,
+        rating: 1,
+        review: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit,' +
+            ' sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, ' +
+            'quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. ' +
+            'Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.' +
+            ' Excepteur sint occaecat cupidatat non proident, ' +
+            'sunt in culpa qui officia deserunt mollit anim id est laborum',
+        helpful: [guest1Id],
+        createdAt: new Date(),
+        updatedAt: new Date()
+    },
+    {
+        property: canalHouse,
+        user: guest2Id,
+        rating: 1,
+        review: 'Wtf man',
+        createdAt: new Date(),
+        updatedAt: new Date()
+    },
+    {
+        property: canalHouse,
+        guest: guest1Id,
+        rating: 5,
+        review: 'Amazing villa, great host',
+        createdAt: new Date(Date.now() + 2 * (60 * 60 * 1000)),
+        updatedAt: new Date(Date.now() + 2 * (60 * 60 * 1000))
+    },
+    {
+        property: ardennesCabin,
+        guest: guest2Id,
+        rating: 3,
+        review: 'Cozy cabin, but could use some updates',
+        createdAt: new Date(Date.now() + 3 * (60 * 60 * 1000)),
+        updatedAt: new Date(Date.now() + 3 * (60 * 60 * 1000))
+    },
+    {
+        property: cityApartmentBrussels,
+        guest: guest1Id,
+        rating: 4,
+        review: 'Modern apartment, great location',
+        createdAt: new Date(),
+        updatedAt: new Date()
+    },
+    {
+        property: loftAntwerp,
+        guest: guest2Id,
+        rating: 5,
+        review: 'Spacious loft, very clean',
+        createdAt: new Date(),
+        updatedAt: new Date()
+    }
+]);
+
 
 print('Database initialization completed successfully!');
