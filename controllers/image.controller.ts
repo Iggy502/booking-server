@@ -151,7 +151,7 @@ export class ImageController {
 
     routes() {
         this.router.post(
-            '/property/:propertyId',  // Updated route to include propertyId
+            '/property/:propertyId',
             this.authMiddleware.authenticate,
             this.upload.array('images', this.MAX_IMAGES),
             this.uploadPropertyImages

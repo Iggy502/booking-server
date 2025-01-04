@@ -108,6 +108,8 @@ db.properties.insertMany([
         },
         pricePerNight: 250,
         maxGuests: 4,
+        totalRatings: 4,
+        avgRating: 2,
         amenities: [
             {
                 type: 'Parking',
@@ -409,30 +411,6 @@ db.ratings.insertMany([
         review: 'Amazing villa, great host',
         createdAt: new Date(Date.now() + 2 * (60 * 60 * 1000)),
         updatedAt: new Date(Date.now() + 2 * (60 * 60 * 1000))
-    },
-    {
-        property: ardennesCabin,
-        user: guest2Id,
-        rating: 3,
-        review: 'Cozy cabin, but could use some updates',
-        createdAt: new Date(Date.now() + 3 * (60 * 60 * 1000)),
-        updatedAt: new Date(Date.now() + 3 * (60 * 60 * 1000))
-    },
-    {
-        property: cityApartmentBrussels,
-        user: guest1Id,
-        rating: 4,
-        review: 'Modern apartment, great location',
-        createdAt: new Date(),
-        updatedAt: new Date()
-    },
-    {
-        property: loftAntwerp,
-        user: guest2Id,
-        rating: 5,
-        review: 'Spacious loft, very clean',
-        createdAt: new Date(),
-        updatedAt: new Date()
     }
 ]);
 

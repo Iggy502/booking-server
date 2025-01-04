@@ -50,8 +50,6 @@ export interface PopulatedBookingDocument extends Omit<IBookingDocument, 'proper
 }
 
 
-
-
 export interface PopulatedBookingResponse extends Omit<IBookingResponse, 'property' | 'guest' | 'conversation'> {
     property: Pick<PopulatedPropertyResponse, 'name' | 'owner'>;
     guest: Pick<IUserResponse, 'firstName' | 'lastName' | 'profilePicturePath'>;

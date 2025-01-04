@@ -42,6 +42,7 @@ const propertySchema = new mongoose.Schema<IPropertyDocument>(
             type: Number,
             required: true,
             default: 0,
+            set: (v: number) => Math.round(v * 10) / 10 // Round to 1 decimal place
         },
         totalRatings: {
             type: Number,

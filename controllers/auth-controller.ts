@@ -258,10 +258,7 @@ export class AuthController {
         this.router.post('/login', this.login);
         this.router.post('/refresh-token', this.refreshToken);
         this.router.post('/initiate-password-reset', this.initiatePasswordReset);
-
         this.router.put('/password-reset-confirm/:token', this.confirmResetPassword);
-
-        // Protected routes
         this.router.post('/logout', this.authMiddleware.authenticate, this.logout);
         this.router.post('/logout-all', this.authMiddleware.authenticate, this.logoutAll);
         this.router.get('/sessions', this.authMiddleware.authenticate, this.listSessions);
