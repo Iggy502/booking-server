@@ -20,8 +20,8 @@ export interface IRatingDocument extends IRatingBase, Document {
 
 
 export interface IRatingCreate extends Omit<IRatingBase, 'helpful' | 'user' | 'property'> {
-    property: string;
-    user: string;
+    propertyId: string;
+    userId: string;
 }
 
 export interface IRatingResponse extends Omit<IRatingBase, 'property' | 'user' | 'helpful'> {

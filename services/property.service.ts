@@ -104,6 +104,7 @@ export class PropertyService {
 
     async getAllProperties(): Promise<IPropertyResponse[]> {
         const properties = await Property.find({available: true});
+        console.log('properties: ', properties);
         return properties.map(property => this.mapToPropertyResponse(property));
     }
 

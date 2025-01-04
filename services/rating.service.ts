@@ -17,23 +17,25 @@ import {ImageConversionUtil} from "./util/image/image-conversion-util";
 export class RatingService {
     async createRating(data: IRatingCreate): Promise<IRatingResponsePopulated[]> {
 
-        const currentRatings = await Rating.find({property: data.property})
+        const currentRatings = await Rating.find({property: data.propertyId})
 
         if (currentRatings.length) {
             const totalRatings = currentRatings.length;
             const averageRating = currentRatings.reduce((sum, r) => sum + r.rating, 0) / totalRatings;
 
-            await Property.findByIdAndUpdate(data.property, {
+            await Property.findByIdAndUpdate(data.propertyId, {
                 averageRating,
                 totalRatings
             });
         }
 
         await Rating.create({
-            ...data
+            ...data,
+            user: new mongoose.Types.ObjectId(data.userId),
+            property: new mongoose.Types.ObjectId(data.propertyId)
         });
 
-        const latestRatingsPopulated = await Rating.find({property: data.property})
+        const latestRatingsPopulated = await Rating.find({property: data.propertyId})
             .populate<IRatingDocumentPopulated>('user', 'firstName lastName profilePicturePath')
             .populate<IRatingDocumentPopulated>('property', 'name averageRating totalRatings')
             .sort({createdAt: -1}) as IRatingDocumentPopulated[];

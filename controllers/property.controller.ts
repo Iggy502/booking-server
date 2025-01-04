@@ -454,6 +454,7 @@ export class PropertyController {
     getAllProperties = async (req: Request, res: Response) => {
         try {
             const properties = await this.propertyService.getAllProperties();
+            console.log(`returning ${properties.length} properties with data ${properties}`);
             res.status(200).json(properties);
         } catch (error: any) {
             res.status(error.status || 500).json(error);
@@ -522,7 +523,7 @@ export class PropertyController {
                 throw BadRequest('No rating data provided');
             }
 
-            if (currentAuthenticatedUserId !== ratingData?.user) {
+            if (currentAuthenticatedUserId !== ratingData?.userId) {
                 throw Forbidden('You can only create a rating for yourself');
             }
 

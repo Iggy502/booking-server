@@ -404,7 +404,7 @@ db.ratings.insertMany([
     },
     {
         property: canalHouse,
-        guest: guest1Id,
+        user: guest1Id,
         rating: 5,
         review: 'Amazing villa, great host',
         createdAt: new Date(Date.now() + 2 * (60 * 60 * 1000)),
@@ -412,7 +412,7 @@ db.ratings.insertMany([
     },
     {
         property: ardennesCabin,
-        guest: guest2Id,
+        user: guest2Id,
         rating: 3,
         review: 'Cozy cabin, but could use some updates',
         createdAt: new Date(Date.now() + 3 * (60 * 60 * 1000)),
@@ -420,7 +420,7 @@ db.ratings.insertMany([
     },
     {
         property: cityApartmentBrussels,
-        guest: guest1Id,
+        user: guest1Id,
         rating: 4,
         review: 'Modern apartment, great location',
         createdAt: new Date(),
@@ -428,7 +428,7 @@ db.ratings.insertMany([
     },
     {
         property: loftAntwerp,
-        guest: guest2Id,
+        user: guest2Id,
         rating: 5,
         review: 'Spacious loft, very clean',
         createdAt: new Date(),
