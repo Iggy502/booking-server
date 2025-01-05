@@ -1,9 +1,8 @@
 import swaggerJsdoc from 'swagger-jsdoc';
-import {faker} from '@faker-js/faker';
-import mongoose from "mongoose";
-import {UserRole} from "../models/interfaces";
-import {AmenityType} from "../models/interfaces/amenity.type";
 import {bookingPaths, bookingSchemas} from "./booking.schemas";
+import {propertyPaths, propertySchemas} from "./property.schema";
+import {userPaths, userSchemas} from "./user.schemas";
+import {authPaths, authSchemas} from "./auth.schemas";
 
 
 const swaggerOptions = {
@@ -29,11 +28,17 @@ const swaggerOptions = {
                 }
             },
             schemas: {
-                ...bookingSchemas
+                ...bookingSchemas,
+                ...propertySchemas,
+                ...userSchemas,
+                ...authSchemas
             }
         },
         paths: {
-            ...bookingPaths
+            ...bookingPaths,
+            ...propertyPaths,
+            ...userPaths,
+            ...authPaths
         }
     },
     apis: ['./controllers/*.ts']

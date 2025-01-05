@@ -7,7 +7,6 @@ import {AuthMiddleware} from "../middleware/auth/auth-middleware";
 import {AuthRequest} from "../middleware/auth/types/token.type";
 import {BadRequest, Forbidden} from "http-errors";
 import {MessageRequest} from "../models/interfaces/chat.types";
-import {IRatingCreate} from "../models/interfaces/rating.types";
 
 
 @singleton()
@@ -22,37 +21,7 @@ export class UserController {
         this.authMiddleware = new AuthMiddleware();
     }
 
-    /**
-     * @swagger
-     * /users:
-     *   post:
-     *     summary: Create a user
-     *     description: Create a user
-     *     tags: [User]
-     *     requestBody:
-     *       required: true
-     *       content:
-     *         application/json:
-     *           schema:
-     *             $ref: '#/components/schemas/UserCreate'
-     *     responses:
-     *       201:
-     *         description: User created
-     *         content:
-     *           application/json:
-     *             schema:
-     *               $ref: '#/components/schemas/UserResponse'
-     *       500:
-     *         description: Internal Server Error
-     *         content:
-     *           application/json:
-     *             schema:
-     *               type: object
-     *               properties:
-     *                 error:
-     *                   type: string
-     *                   example: Internal Server Error
-     */
+
     createUser = async (req: Request, res: Response) => {
         try {
             const userData: IUserCreate = req.body;
@@ -64,37 +33,6 @@ export class UserController {
 
     };
 
-    /**
-     * @swagger
-     * /users/{id}:
-     *   get:
-     *     summary: Get a user by id
-     *     description: Get a user by id
-     *     tags: [User]
-     *     parameters:
-     *       - in: path
-     *         name: id
-     *         required: true
-     *         schema:
-     *           type: string
-     *     responses:
-     *       200:
-     *         description: User found
-     *         content:
-     *           application/json:
-     *             schema:
-     *               $ref: '#/components/schemas/UserResponse'
-     *       500:
-     *         description: Internal Server Error
-     *         content:
-     *           application/json:
-     *             schema:
-     *               type: object
-     *               properties:
-     *                 error:
-     *                   type: string
-     *                   example: Internal Server Error
-     */
     getUserById = async (req: Request, res: Response) => {
         const userId = req.params.id;
 
@@ -106,53 +44,6 @@ export class UserController {
         }
     };
 
-    /**
-     * @swagger
-     * /users/{id}:
-     *   put:
-     *     summary: Update a user
-     *     description: Update a user
-     *     tags: [User]
-     *     parameters:
-     *       - in: path
-     *         name: id
-     *         required: true
-     *         schema:
-     *           type: string
-     *     requestBody:
-     *       required: true
-     *       content:
-     *         application/json:
-     *           schema:
-     *            $ref: '#/components/schemas/UserUpdate'
-     *     responses:
-     *       200:
-     *         description: User updated
-     *         content:
-     *           application/json:
-     *             schema:
-     *               $ref: '#/components/schemas/UserResponse'
-     *       404:
-     *          description: User not found
-     *          content:
-     *            application/json:
-     *              schema:
-     *              type: object
-     *              properties:
-     *                 error:
-     *                   type: string
-     *                   example: User not found
-     *       500:
-     *         description: Internal Server Error
-     *         content:
-     *           application/json:
-     *             schema:
-     *               type: object
-     *               properties:
-     *                 error:
-     *                   type: string
-     *                   example: Internal Server Error
-     */
     updateUser = async (req: AuthRequest, res: Response) => {
 
         const currentAuthenticatedUserId = req.user?.id!;
@@ -187,41 +78,8 @@ export class UserController {
             res.status(error.status || 500).json(error);
 
         }
-
-
     }
 
-    /**
-     * @swagger
-     * /users/{id}:
-     *   delete:
-     *     summary: Delete a user
-     *     description: Delete a user
-     *     tags: [User]
-     *     parameters:
-     *       - in: path
-     *         name: id
-     *         required: true
-     *         schema:
-     *           type: string
-     *     responses:
-     *       200:
-     *         description: User deleted
-     *         content:
-     *           application/json:
-     *             schema:
-     *               $ref: '#/components/schemas/UserResponse'
-     *       404:
-     *         description: User not found
-     *         content:
-     *           application/json:
-     *             schema:
-     *             type: object
-     *             properties:
-     *             error:
-     *                type: string
-     *                example: User not found     *
-     */
     deleteUser = async (req: Request, res: Response) => {
         try {
             const userId = req.params.id;
@@ -231,9 +89,6 @@ export class UserController {
             res.status(error.status).json({error: error.message});
         }
     };
-
-
-
 
 
 

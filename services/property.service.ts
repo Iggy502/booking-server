@@ -14,7 +14,7 @@ import {Booking} from "../models/booking.model";
 import {BadRequest, InternalServerError, NotFound} from "http-errors";
 import {ImageUploadService} from "./image.upload.service";
 import {ImageConversionUtil} from "./util/image/image-conversion-util";
-import {UserService} from "./user.service";
+import {User} from "../models/user.model";
 
 
 @injectable()
@@ -29,6 +29,13 @@ export class PropertyService {
 
     async createProperty(propertyData: IPropertyCreate): Promise<IPropertyResponse> {
         try {
+
+            const ownerUserId = await User.exists({_id: propertyData.owner});
+
+            if (!ownerUserId) {
+                throw NotFound('Owner not found');
+            }
+
             const coordinates = await this.geocodingService.getCoordinates(propertyData.address);
 
             const propertyWithCoordinates = {
@@ -46,16 +53,6 @@ export class PropertyService {
             throw InternalServerError('Failed to create property');
         }
     }
-
-    // Lazy getter for imageUploadService
-    // Avoids circular dependency issue
-    private getImageUploadService(): ImageUploadService {
-        if (!this.imageUploadService) {
-            this.imageUploadService = container.resolve(ImageUploadService);
-        }
-        return this.imageUploadService;
-    }
-
 
     async createPropertyWithOwner(userId: string, propertyData: IPropertyCreate): Promise<IPropertyResponse> {
         try {

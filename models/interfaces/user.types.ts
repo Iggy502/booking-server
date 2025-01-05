@@ -20,16 +20,17 @@ export interface IUserBase {
     password: string;
     profilePicturePath?: string;
     passwordResetToken?: PasswordResetToken;
-    roles: UserRole[];
+    roles: Array<UserRole>;
 }
 
 export interface IUserDocument extends IUserBase, Document {
     refreshTokens: RefreshToken[];
+
     comparePassword(candidatePassword: string): Promise<boolean>;
 }
 
-export interface IUserCreate extends Omit<IUserBase, 'profilePicturePath'> {
-
+export interface IUserCreate extends Omit<IUserBase, 'profilePicturePath' | 'roles'> {
+    roles: Array<Exclude<UserRole, 'TEST'>> // User Test role is not allowed to be created
 }
 
 export interface IUserUpdate extends Partial<IUserBase> {

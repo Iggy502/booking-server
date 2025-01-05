@@ -33,30 +33,7 @@ export class AuthController {
         this.authUtils = new AuthUtils();
     }
 
-    /**
-     * @swagger
-     * /auth/login:
-     *   post:
-     *     summary: Login user
-     *     description: Authenticate user and return access token in response, refresh token in HTTP-only cookie
-     *     tags: [Auth]
-     *     security: []
-     *     requestBody:
-     *       required: true
-     *       content:
-     *         application/json:
-     *           schema:
-     *             $ref: '#/components/schemas/LoginRequest'
-     *     responses:
-     *       200:
-     *         description: Login successful
-     *         content:
-     *           application/json:
-     *             schema:
-     *               $ref: '#/components/schemas/AccessTokenResponse'
-     *       401:
-     *         description: Invalid credentials
-     */
+
     login = async (req: Request, res: Response) => {
         try {
             console.log("Login request received");
@@ -109,29 +86,9 @@ export class AuthController {
         } catch (error: any) {
             res.status(error.status || 500).json(error);
         }
-
-
     }
 
 
-    /**
-     * @swagger
-     * /auth/refresh-token:
-     *   post:
-     *     summary: Refresh access token
-     *     description: Get new access token using refresh token from HTTP-only cookie
-     *     tags: [Auth]
-     *     security: []
-     *     responses:
-     *       200:
-     *         description: New access token generated
-     *         content:
-     *           application/json:
-     *             schema:
-     *               $ref: '#/components/schemas/RefreshTokenResponse'
-     *       401:
-     *         description: Invalid refresh token
-     */
     refreshToken = async (req: Request, res: Response) => {
         try {
             const refreshToken = req.cookies[this.REFRESH_TOKEN_COOKIE_NAME];
@@ -156,19 +113,6 @@ export class AuthController {
         }
     };
 
-    /**
-     * @swagger
-     * /auth/logout:
-     *   post:
-     *     summary: Logout user
-     *     description: Invalidate refresh token and clear the cookie
-     *     tags: [Auth]
-     *     security:
-     *       - bearerAuth: []
-     *     responses:
-     *       200:
-     *         description: Logged out successfully
-     */
     logout = async (req: AuthRequest, res: Response) => {
         try {
             const refreshToken = req.cookies[this.REFRESH_TOKEN_COOKIE_NAME];
@@ -189,19 +133,6 @@ export class AuthController {
         }
     };
 
-    /**
-     * @swagger
-     * /auth/logout-all:
-     *   post:
-     *     summary: Logout from all devices
-     *     description: Invalidate all refresh tokens and clear the current cookie
-     *     tags: [Auth]
-     *     security:
-     *       - bearerAuth: []
-     *     responses:
-     *       200:
-     *         description: Logged out from all devices
-     */
     logoutAll = async (req: AuthRequest, res: Response) => {
         try {
             await this.authService.logoutAll(req.user!.id);
@@ -218,31 +149,6 @@ export class AuthController {
         }
     };
 
-    /**
-     * @swagger
-     * /auth/sessions:
-     *   get:
-     *     summary: List active sessions
-     *     description: Get all active sessions for the current user
-     *     tags: [Auth]
-     *     security:
-     *       - bearerAuth: []
-     *     responses:
-     *       200:
-     *         description: List of active sessions
-     *         content:
-     *           application/json:
-     *             schema:
-     *               type: array
-     *               items:
-     *                 $ref: '#/components/schemas/SessionResponse'
-     *       401:
-     *         description: Unauthorized
-     *         content:
-     *           application/json:
-     *             schema:
-     *               $ref: '#/components/schemas/ErrorResponse'
-     */
     listSessions = async (req: AuthRequest, res: Response) => {
         try {
             const sessions = await this.authService.listSessions(req.user!.id);
@@ -254,7 +160,6 @@ export class AuthController {
 
 
     routes() {
-        // Public routes
         this.router.post('/login', this.login);
         this.router.post('/refresh-token', this.refreshToken);
         this.router.post('/initiate-password-reset', this.initiatePasswordReset);
