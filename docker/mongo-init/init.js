@@ -121,7 +121,7 @@ db.properties.insertMany([
         createdAt: new Date(),
         updatedAt: new Date(),
         imagePaths: [
-            'properties/test/testpropimage1.webp',
+            'properties/test/testpropimage1.jpg',
             'properties/test/testpropimage2.jpg',
             'properties/test/testpropimage3.jpg'
         ]
@@ -151,7 +151,7 @@ db.properties.insertMany([
         createdAt: new Date(),
         updatedAt: new Date(),
         imagePaths: [
-            'properties/test/testpropimage1.webp',
+            'properties/test/testpropimage1.jpg',
             'properties/test/testpropimage2.jpg',
             'properties/test/testpropimage3.jpg'
         ]
@@ -181,7 +181,7 @@ db.properties.insertMany([
         createdAt: new Date(),
         updatedAt: new Date(),
         imagePaths: [
-            'properties/test/testpropimage1.webp',
+            'properties/test/testpropimage1.jpg',
             'properties/test/testpropimage2.jpg',
             'properties/test/testpropimage3.jpg'
         ]
@@ -214,7 +214,7 @@ db.properties.insertMany([
         createdAt: new Date(),
         updatedAt: new Date(),
         imagePaths: [
-            'properties/test/testpropimage1.webp',
+            'properties/test/testpropimage1.jpg',
             'properties/test/testpropimage2.jpg',
             'properties/test/testpropimage3.jpg'
         ]
@@ -256,7 +256,7 @@ db.properties.insertMany([
         createdAt: new Date(),
         updatedAt: new Date(),
         imagePaths: [
-            'properties/test/testpropimage1.webp',
+            'properties/test/testpropimage1.jpg',
             'properties/test/testpropimage2.jpg',
             'properties/test/testpropimage3.jpg'
         ]
