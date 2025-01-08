@@ -30,9 +30,12 @@ export class AuthUtils {
             email: user.email,
             firstName: user.firstName,
             lastName: user.lastName,
-            roles: user.roles,
-            profilePicturePath: ImageConversionUtil.convertPathToUrl(user.profilePicturePath || '', process.env.AWS_S3_BUCKET || '')
+            roles: user.roles
         };
+
+        if (user.profilePicturePath) {
+            payload.profilePicturePath = ImageConversionUtil.convertPathToUrl(user.profilePicturePath || '', process.env.AWS_S3_BUCKET || '');
+        }
 
         return jwt.sign(payload, this.jwtSecret, {
             expiresIn: this.jwtExpiresIn,

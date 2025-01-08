@@ -22,7 +22,6 @@ export class BookingController {
 
     createBooking = async (req: AuthRequest, res: Response) => {
         try {
-
             const currentUser = req.user?.id!;
 
             if (!req.body.checkIn || !req.body.checkOut || !req.body.property) {
