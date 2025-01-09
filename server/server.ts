@@ -38,7 +38,7 @@ const propertyController = container.resolve(PropertyController);
 app.use('/properties', propertyController.routes());
 
 const authController = container.resolve(AuthController);
-app.use(process.env.AUTH_BASE_URL || '/auth', authController.routes());
+app.use('/auth', authController.routes());
 
 const imageUploadController = container.resolve(ImageController);
 app.use('/images', imageUploadController.routes());
