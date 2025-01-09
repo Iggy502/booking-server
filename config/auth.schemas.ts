@@ -1,5 +1,3 @@
-// src/docs/auth.docs.ts
-
 export const authSchemas = {
     LoginRequest: {
         type: 'object',

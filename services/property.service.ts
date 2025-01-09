@@ -1,4 +1,3 @@
-//Property service to handle property operations
 import {Property} from '../models/property.model';
 import {
     IPropertyBase,
@@ -8,11 +7,9 @@ import {
     IPropertyUpdate
 } from '../models/interfaces';
 import {container, injectable} from 'tsyringe';
-import {HttpError} from "./exceptions/http-error";
 import {GeocodingService} from "./geocoding.service";
 import {Booking} from "../models/booking.model";
-import {BadRequest, InternalServerError, NotFound} from "http-errors";
-import {ImageUploadService} from "./image.upload.service";
+import {InternalServerError, NotFound} from "http-errors";
 import {ImageConversionUtil} from "./util/image/image-conversion-util";
 import {User} from "../models/user.model";
 
@@ -21,7 +18,6 @@ import {User} from "../models/user.model";
 export class PropertyService {
 
     private geocodingService: GeocodingService;
-    private imageUploadService!: ImageUploadService;
 
     constructor() {
         this.geocodingService = container.resolve(GeocodingService);
@@ -29,7 +25,6 @@ export class PropertyService {
 
     async createProperty(propertyData: IPropertyCreate): Promise<IPropertyResponse> {
         try {
-
             const ownerUserId = await User.exists({_id: propertyData.owner});
 
             if (!ownerUserId) {
@@ -51,27 +46,6 @@ export class PropertyService {
         } catch (error) {
             console.error('Error creating property:', error);
             throw InternalServerError('Failed to create property');
-        }
-    }
-
-    async createPropertyWithOwner(userId: string, propertyData: IPropertyCreate): Promise<IPropertyResponse> {
-        try {
-            const coordinates = await this.geocodingService.getCoordinates(propertyData.address);
-
-            const propertyWithCoordinates = {
-                ...propertyData,
-                owner: userId,
-                address: {
-                    ...propertyData.address,
-                    ...coordinates
-                }
-            };
-
-            const property = await Property.create(propertyWithCoordinates);
-            return this.mapToPropertyResponse(property);
-        } catch (error) {
-            console.error('Error creating property:', error);
-            throw new InternalServerError('Failed to create property');
         }
     }
 
@@ -127,67 +101,6 @@ export class PropertyService {
 
         console.log('overlapping is there: ', newVar);
         return !newVar;
-    }
-
-    async getAvailablePropertiesWithoutBookingsFilteredBy(filter: Map<string, string>): Promise<IPropertyResponse[]> {
-        const matchConditions: { [key: string]: any } = {
-            available: true
-        };
-
-        let checkIn: Date | undefined;
-        let checkOut: Date | undefined;
-
-        filter?.forEach((value, key) => {
-            if (key === 'address') {
-                try {
-                    const addressObj = JSON.parse(decodeURI(value));
-                    Object.entries(addressObj).forEach(([addressKey, addressValue]) => {
-                        matchConditions[`address.${addressKey}`] = addressValue;
-                    });
-                } catch (error) {
-                    console.error('Error parsing address:', error);
-                    throw new NotFound('Invalid address format');
-                }
-            } else if (key === 'maxGuests') {
-                matchConditions[key] = parseInt(value, 10);
-            } else if (key === 'pricePerNight') {
-                matchConditions[key] = parseFloat(value);
-            } else if (key === 'checkIn') {
-                checkIn = new Date(value);
-                if (isNaN(checkIn.getTime())) {
-                    throw BadRequest('Invalid checkIn date format');
-                }
-            } else if (key === 'checkOut') {
-                checkOut = new Date(value);
-                if (isNaN(checkOut.getTime())) {
-                    throw BadRequest('Invalid checkOut date format');
-                }
-            } else {
-                console.error('Invalid filter key:', key);
-            }
-        });
-
-        if (checkIn && checkOut) {
-            const bookedPropertyIds = await Booking.distinct('property', {
-                status: 'pending',
-                $or: [
-                    {
-                        checkIn: {$lt: checkOut},
-                        checkOut: {$gt: checkIn}
-                    },
-                    {
-                        checkIn: {$gte: checkIn, $lt: checkOut}
-                    }
-                ]
-            });
-
-            if (bookedPropertyIds.length > 0) {
-                matchConditions._id = {$nin: bookedPropertyIds};
-            }
-        }
-
-        const properties = await Property.find(matchConditions);
-        return properties.map(property => this.mapToPropertyResponse(property));
     }
 
     async getPropertyById(propertyId: string): Promise<IPropertyResponse> {
@@ -250,25 +163,17 @@ export class PropertyService {
 
             return this.mapToPropertyResponse(property);
         } catch (error) {
-            if (error instanceof HttpError) {
-                throw error;
-            }
+            console.error('Error updating property:', error);
             throw new InternalServerError('Failed to update property');
         }
     }
 
-    async deleteProperty(propertyId: string): Promise<IPropertyResponse> {
+    async deleteProperty(propertyId: string): Promise<void> {
         const property = await Property.findByIdAndDelete(propertyId);
 
         if (!property) {
             throw new NotFound('Property not found');
         }
-
-        return this.mapToPropertyResponse(property);
-    }
-
-    async getPropertiesWithFilter(filters: Map<string, string>): Promise<IPropertyResponse[]> {
-        return this.getAvailablePropertiesWithoutBookingsFilteredBy(filters);
     }
 
     async getPropertiesByUserId(userId: string): Promise<IPropertyResponse[]> {
@@ -278,7 +183,6 @@ export class PropertyService {
 
 
     async removePropertyImage(propertyId: string, imageURL: string) {
-
         let imagePath = ImageConversionUtil.convertUrlToPath(imageURL, process.env.AWS_S3_BUCKET || '');
 
         const propertyResult = await Property.findByIdAndUpdate(propertyId, {

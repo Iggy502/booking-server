@@ -1,4 +1,3 @@
-//Controller for booking
 import {Request, Response, Router} from 'express';
 import {BookingService} from '../services/booking.service';
 import {IBookingCreate} from '../models/interfaces';

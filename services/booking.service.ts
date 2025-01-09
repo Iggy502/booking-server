@@ -1,5 +1,3 @@
-//booking operations
-// Objective: Booking service to handle booking operations
 import {Booking} from '../models/booking.model';
 import {
     IBookingCreate,
@@ -71,7 +69,6 @@ export class BookingService {
             conversation: {messages: [], active: true}, //create conversation
             totalPrice: this.calculateTotalPrice(property.pricePerNight, bookingData.checkIn, bookingData.checkOut)
         });
-
 
         return this.mapToBookingResponse(booking);
     }
@@ -153,14 +150,11 @@ export class BookingService {
             }).select('id property guest conversation').exec()
             .then(bookings => bookings as PopulatedBookingDocument[]);
 
-
         return bookingsForIdsPopulated.map(booking => this.mapToPopulatedBookingResponse(booking));
     }
 
 
     async updateBooking(bookingId: string, bookingData: IBookingUpdate): Promise<IBookingResponse> {
-
-
         const booking = await Booking.findById(bookingId);
 
         if (!booking) {
@@ -198,15 +192,6 @@ export class BookingService {
         return this.mapToBookingResponse(booking);
     }
 
-    async getBookingsWithinDateRange(startDate: Date, endDate: Date): Promise<IBookingResponse[]> {
-        const bookings: IBookingDocument[] = await Booking.find({
-            checkIn: {$gte: startDate},
-            checkOut: {$lte: endDate}
-        });
-
-        return bookings.map(booking => this.mapToBookingResponse(booking));
-    }
-
     async findMatchingBookingForConversation(conversationId: string) {
         return Booking.findOne({'conversation._id': conversationId});
     }
@@ -234,20 +219,6 @@ export class BookingService {
 
         return bookingObject;
     }
-
-
-    calculateDuration(endDate: Date, startDate: Date): number {
-        return (endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24);
-    }
-
-    calculateTotalPrice(propertyPrice: number, checkIn: Date, checkOut: Date): number {
-        return propertyPrice * this.calculateDuration(checkOut, checkIn);
-    }
-
-    validateCheckOutDate(checkIn: Date, checkOut: Date): boolean {
-        return checkOut > checkIn;
-    }
-
 
     async saveChatMessageForConversationAndRelatedBooking(message: MessageRequest): Promise<IBookingDocument> {
         return Booking.findOne({'conversation._id': message.conversationId}).then(booking => {
@@ -288,8 +259,20 @@ export class BookingService {
         });
 
         return bookingForConversation.save();
-
     }
+
+    calculateDuration(endDate: Date, startDate: Date): number {
+        return (endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24);
+    }
+
+    calculateTotalPrice(propertyPrice: number, checkIn: Date, checkOut: Date): number {
+        return propertyPrice * this.calculateDuration(checkOut, checkIn);
+    }
+
+    validateCheckOutDate(checkIn: Date, checkOut: Date): boolean {
+        return checkOut > checkIn;
+    }
+
 
 }
 

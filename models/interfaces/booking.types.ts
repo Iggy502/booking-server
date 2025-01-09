@@ -1,12 +1,7 @@
 // src/models/types/booking.index.ts
 import {Document, Types} from 'mongoose';
 import {Conversation, ConversationResponse, IConversationDocument} from "./chat.types";
-import {
-    IPropertyDocument,
-    IPropertyResponse,
-    PopulatedPropertyDocument,
-    PopulatedPropertyResponse
-} from "./property.types";
+import {PopulatedPropertyDocument, PopulatedPropertyResponse} from "./property.types";
 import {IUserDocument, IUserResponse} from "./user.types";
 
 export type BookingStatus = 'pending' | 'confirmed' | 'cancelled';

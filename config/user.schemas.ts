@@ -1,5 +1,3 @@
-// src/docs/user.docs.ts
-
 export const userSchemas = {
     UserBase: {
         type: 'object',
@@ -167,7 +165,7 @@ export const userPaths = {
                     in: 'path',
                     name: 'id',
                     required: true,
-                    schema: { type: 'string' },
+                    schema: {type: 'string'},
                     description: 'User ID'
                 }
             ],
@@ -197,13 +195,13 @@ export const userPaths = {
         put: {
             summary: 'Update a user',
             tags: ['Users'],
-            security: [{ bearerAuth: [] }],
+            security: [{bearerAuth: []}],
             parameters: [
                 {
                     in: 'path',
                     name: 'id',
                     required: true,
-                    schema: { type: 'string' },
+                    schema: {type: 'string'},
                     description: 'User ID'
                 }
             ],
@@ -213,11 +211,11 @@ export const userPaths = {
                         schema: {
                             type: 'object',
                             properties: {
-                                email: { type: 'string' },
-                                firstName: { type: 'string' },
-                                lastName: { type: 'string' },
-                                phone: { type: 'string' },
-                                profilePicturePath: { type: 'string' },
+                                email: {type: 'string'},
+                                firstName: {type: 'string'},
+                                lastName: {type: 'string'},
+                                phone: {type: 'string'},
+                                profilePicturePath: {type: 'string'},
                                 roles: {
                                     type: 'array',
                                     items: {
@@ -276,13 +274,13 @@ export const userPaths = {
         delete: {
             summary: 'Delete a user',
             tags: ['Users'],
-            security: [{ bearerAuth: [] }],
+            security: [{bearerAuth: []}],
             parameters: [
                 {
                     in: 'path',
                     name: 'id',
                     required: true,
-                    schema: { type: 'string' },
+                    schema: {type: 'string'},
                     description: 'User ID'
                 }
             ],

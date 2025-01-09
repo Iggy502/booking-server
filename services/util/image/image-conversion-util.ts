@@ -6,8 +6,7 @@ export class ImageConversionUtil {
             throw BadRequest('Invalid URL or bucket name');
         }
 
-        const path = url.replace(`https://${bucket || ' '}.s3.${process.env.AWS_REGION}.amazonaws.com/`, '');
-        return path;
+        return url.replace(`https://${bucket || ' '}.s3.${process.env.AWS_REGION}.amazonaws.com/`, '');
     }
 
     static convertPathToUrl(path: string, bucket: string): string {

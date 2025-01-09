@@ -1,5 +1,3 @@
-// src/docs/property.docs.ts
-
 import {AmenityType} from "../models/interfaces/amenity.type";
 
 export const propertySchemas = {

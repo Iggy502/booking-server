@@ -1,4 +1,3 @@
-//property.controller.ts
 import {Request, Response, Router} from 'express';
 import {container, singleton} from "tsyringe";
 import {PropertyService} from "../services/property.service";
@@ -124,7 +123,6 @@ export class PropertyController {
             res.status(error.status || 500).json(error);
         }
     }
-
 
 
     getAllProperties = async (req: Request, res: Response) => {

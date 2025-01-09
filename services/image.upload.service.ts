@@ -28,7 +28,6 @@ export class ImageUploadService {
     private userService: UserService;
 
     constructor() {
-
         this.s3Client = new S3Client({
             region: process.env.AWS_REGION || 'us-east-1',
             credentials: {
@@ -79,8 +78,7 @@ export class ImageUploadService {
                 ContentType: file.mimetype
             });
 
-            var res = await this.s3Client.send(command);
-
+            const res = await this.s3Client.send(command);
             console.log('Uploaded image to S3:', res);
 
             return filePath;
@@ -152,11 +150,9 @@ export class ImageUploadService {
 
         const listCommand = new ListObjectsV2Command({
             Bucket: "bookingimages502",
-            Prefix: path  // Use the same key you tried to delete
+            Prefix: path
         });
 
         const listResponse = await this.s3Client.send(listCommand);
-        console.log("Objects after deletion:", listResponse.Contents);
     }
-
 }

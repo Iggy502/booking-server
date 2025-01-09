@@ -1,4 +1,4 @@
-db = db.getSiblingDB('booking_db');
+db = db.getSiblingDB('bookingdb');
 
 // Create collections
 db.createCollection('users');

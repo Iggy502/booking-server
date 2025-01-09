@@ -1,4 +1,3 @@
-// src/controllers/image.controller.ts
 import {Request, Response, Router} from 'express';
 import {container, singleton} from "tsyringe";
 import {ImageUploadService} from "../services/image.upload.service";

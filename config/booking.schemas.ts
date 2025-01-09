@@ -1,5 +1,3 @@
-// src/docs/booking.docs.ts
-
 export const bookingSchemas = {
     BookingBase: {
         type: 'object',
@@ -136,7 +134,7 @@ export const bookingPaths = {
         post: {
             summary: 'Create a new booking',
             tags: ['Bookings'],
-            security: [{ bearerAuth: [] }],
+            security: [{bearerAuth: []}],
             requestBody: {
                 required: true,
                 content: {
@@ -179,7 +177,7 @@ export const bookingPaths = {
                         'application/json': {
                             schema: {
                                 allOf: [
-                                    { $ref: '#/components/schemas/BookingBase' },
+                                    {$ref: '#/components/schemas/BookingBase'},
                                     {
                                         type: 'object',
                                         properties: {
@@ -200,16 +198,16 @@ export const bookingPaths = {
                         'application/json': {
                             examples: {
                                 missingFields: {
-                                    value: { error: 'Please provide checkIn, checkOut, propertyId' }
+                                    value: {error: 'Please provide checkIn, checkOut, propertyId'}
                                 },
                                 invalidDates: {
-                                    value: { error: 'Check out date should be after check in date' }
+                                    value: {error: 'Check out date should be after check in date'}
                                 },
                                 overlapBooking: {
-                                    value: { error: 'Booking overlaps with existing booking' }
+                                    value: {error: 'Booking overlaps with existing booking'}
                                 },
                                 guestLimit: {
-                                    value: { error: 'Number of guests exceeds property limit' }
+                                    value: {error: 'Number of guests exceeds property limit'}
                                 }
                             }
                         }
@@ -221,10 +219,10 @@ export const bookingPaths = {
                         'application/json': {
                             examples: {
                                 propertyNotFound: {
-                                    value: { error: 'Property not found or not available' }
+                                    value: {error: 'Property not found or not available'}
                                 },
                                 guestNotFound: {
-                                    value: { error: 'Guest not found' }
+                                    value: {error: 'Guest not found'}
                                 }
                             }
                         }
@@ -242,7 +240,7 @@ export const bookingPaths = {
                     in: 'path',
                     name: 'id',
                     required: true,
-                    schema: { type: 'string' },
+                    schema: {type: 'string'},
                     description: 'Booking ID'
                 }
             ],
@@ -279,7 +277,7 @@ export const bookingPaths = {
                     in: 'path',
                     name: 'userId',
                     required: true,
-                    schema: { type: 'string' },
+                    schema: {type: 'string'},
                     description: 'User ID'
                 }
             ],
@@ -319,7 +317,7 @@ export const bookingPaths = {
                     in: 'path',
                     name: 'userId',
                     required: true,
-                    schema: { type: 'string' },
+                    schema: {type: 'string'},
                     description: 'User ID'
                 }
             ],
@@ -359,7 +357,7 @@ export const bookingPaths = {
                     in: 'path',
                     name: 'propertyId',
                     required: true,
-                    schema: { type: 'string' },
+                    schema: {type: 'string'},
                     description: 'Property ID'
                 }
             ],
@@ -442,13 +440,13 @@ export const bookingPaths = {
         put: {
             summary: 'Mark conversation as read',
             tags: ['Bookings'],
-            security: [{ bearerAuth: [] }],
+            security: [{bearerAuth: []}],
             parameters: [
                 {
                     in: 'path',
                     name: 'conversationId',
                     required: true,
-                    schema: { type: 'string' },
+                    schema: {type: 'string'},
                     description: 'Conversation ID'
                 }
             ],

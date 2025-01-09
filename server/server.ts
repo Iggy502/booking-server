@@ -11,9 +11,7 @@ import {AuthController} from '../controllers/auth-controller';
 import {ImageController} from '../controllers/image.controller';
 import {swaggerDocs} from '../config/swagger.config';
 import cookieParser from 'cookie-parser';
-
 import cors from 'cors';
-
 import dotenv from 'dotenv';
 
 dotenv.config();
@@ -57,8 +55,10 @@ const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, async () => {
     console.log(`Server is running on http://localhost:${PORT}`);
+
     try {
-        await mongoose.connect('mongodb://admin:test@localhost:27017/booking_db?authSource=admin');
+        await mongoose.connect(`mongodb://${process.env.MONGO_INITDB_ROOT_USERNAME}:${process.env.MONGO_INITDB_ROOT_PASSWORD}@localhost:${process.env.MONGO_PORT}/${process.env.MONGO_INITDB_DATABASE}?authSource=admin`);
+
         console.log('Connected to database');
         console.log('Visit mongo express at http://localhost:8081');
     } catch (error) {

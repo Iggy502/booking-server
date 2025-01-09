@@ -1,9 +1,6 @@
-// src/models/user.model.ts
 import mongoose from 'mongoose';
 import bcrypt from 'bcryptjs';
-//Automatically scans for index file if given path is a folder
-import {IUserDocument, IUserModel} from './interfaces';
-import {UserRole} from "./interfaces/auth.types";
+import {IUserDocument, IUserModel, UserRole} from './interfaces';
 
 const userSchema = new mongoose.Schema<IUserDocument>(
     {

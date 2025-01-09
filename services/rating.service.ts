@@ -1,4 +1,3 @@
-// src/services/rating.service.ts
 import {injectable} from 'tsyringe';
 import {Property} from '../models/property.model';
 import {Rating} from '../models/rating.model';
@@ -9,7 +8,7 @@ import {
     IRatingResponse,
     IRatingResponsePopulated
 } from '../models/interfaces/rating.types';
-import {BadRequest, Forbidden, NotFound, Unauthorized} from 'http-errors';
+import {Forbidden, NotFound} from 'http-errors';
 import mongoose from 'mongoose';
 import {ImageConversionUtil} from "./util/image/image-conversion-util";
 

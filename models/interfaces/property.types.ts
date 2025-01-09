@@ -1,7 +1,7 @@
 // src/models/types/property.index.ts
 import {Document, Types} from 'mongoose';
 import {IAmenity} from "./amenity.type";
-import {IUserBase, IUserDocument, IUserResponse} from "./user.types";
+import {IUserDocument, IUserResponse} from "./user.types";
 
 export interface IAddress {
     street: string;

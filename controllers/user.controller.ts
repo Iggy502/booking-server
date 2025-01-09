@@ -1,4 +1,3 @@
-//Controller for user
 import {Request, Response, Router} from 'express';
 import {UserService} from '../services/user.service';
 import {IUserCreate, UserRole} from '../models/interfaces';
@@ -30,7 +29,6 @@ export class UserController {
         } catch (error: any) {
             res.status(error.status || 500).json(error);
         }
-
     };
 
     getUserById = async (req: Request, res: Response) => {
@@ -91,7 +89,6 @@ export class UserController {
     };
 
 
-
     routes() {
         this.router.post('/', this.createUser);
         this.router.get('/:id', this.getUserById);
@@ -100,6 +97,5 @@ export class UserController {
         this.router.delete('/:id', this.authMiddleware.authenticate, this.authMiddleware.requireRoles([UserRole.ADMIN]), this.deleteUser);
         return this.router;
     }
-
 
 }

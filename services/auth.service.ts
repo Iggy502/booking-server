@@ -1,8 +1,7 @@
 import {singleton} from "tsyringe";
 import {AuthUtils} from "../middleware/auth/utils/auth.utils";
 import {User} from "../models/user.model";
-import {IUserResponse, PasswordResetToken} from "../models/interfaces";
-import {UnauthorizedError} from "../middleware/auth/exceptions/unauthorized.error";
+import {IUserResponse} from "../models/interfaces";
 import {RefreshTokenPayload} from "../middleware/auth/types/token.type";
 import {InternalServerError, Unauthorized} from "http-errors";
 import nodemailer from 'nodemailer';
@@ -148,6 +147,7 @@ export class AuthService {
         await transporter.sendMail(mailOptions);
 
     }
+
     async logoutAll(userId: string): Promise<void> {
         await User.findByIdAndUpdate(userId, {
             $set: {refreshTokens: []}

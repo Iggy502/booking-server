@@ -1,4 +1,3 @@
-// Objective: User service to handle user operations
 import {User} from '../models/user.model';
 import {IBookingDocument, IUserCreate, IUserDocument, IUserResponse, IUserUpdate} from '../models/interfaces';
 import {container, singleton} from 'tsyringe';
@@ -66,7 +65,6 @@ export class UserService {
         }
 
         await User.findByIdAndUpdate(user.id, {passwordResetToken: null, password: newPassword});
-
     }
 
     async updateUser(userId: string, userData: IUserUpdate): Promise<IUserResponse> {

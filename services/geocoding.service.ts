@@ -1,8 +1,7 @@
-// src/services/geocoding.service.ts
 import axios from 'axios';
 import {injectable} from 'tsyringe';
 import {IAddress} from '../models/interfaces';
-import {HttpError} from './exceptions/http-error';
+import {InternalServerError, NotFound} from "http-errors";
 
 @injectable()
 export class GeocodingService {
@@ -20,22 +19,19 @@ export class GeocodingService {
         try {
             const addressString = this.formatAddress(address);
             const encodedAddress = encodeURIComponent(addressString);
-            
+
             const url = `${this.baseUrl}/${encodedAddress}.json?access_token=${this.accessToken}`;
             const response = await axios.get(url);
 
             if (!response.data.features || response.data.features.length === 0) {
-                throw new HttpError(400, 'Address not found');
+                throw NotFound('Address not found');
             }
 
             const [longitude, latitude] = response.data.features[0].center;
-            return { latitude, longitude };
+            return {latitude, longitude};
         } catch (error) {
-            if (error instanceof HttpError) {
-                throw error;
-            }
             console.error('Geocoding error:', error);
-            throw new HttpError(500, 'Geocoding service error');
+            throw InternalServerError('Geocoding service error');
         }
     }
 
@@ -46,7 +42,7 @@ export class GeocodingService {
             address.postalCode,
             address.country
         ].filter(Boolean);
-        
+
         return parts.join(', ');
     }
 }
