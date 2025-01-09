@@ -22,7 +22,6 @@ export interface IRating {
 }
 
 
-
 export interface IPropertyBase {
     name: string;
     owner: Types.ObjectId;

@@ -1,4 +1,3 @@
-// src/models/types/rating.types.ts
 import {Document, Types} from 'mongoose';
 import {IPropertyDocument, IPropertyResponse} from "./property.types";
 import {IUserDocument, IUserResponse} from "./user.types";

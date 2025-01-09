@@ -19,7 +19,9 @@ export interface IBookingBase {
 
 export interface IBookingDocument extends IBookingBase, Document {
     calculateDuration(endDate: Date, startDate: Date): number;
+
     toObject(): IBookingResponse | PopulatedBookingResponse;
+
     calculateTotalPrice(): number;
 }
 
