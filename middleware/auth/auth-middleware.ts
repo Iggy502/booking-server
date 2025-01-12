@@ -1,7 +1,6 @@
 // src/middleware/auth.middleware.ts
 import {NextFunction, Response} from 'express';
 import {AuthRequest, TokenPayload} from './types/token.type';
-import {UnauthorizedError} from './exceptions/unauthorized.error';
 import {AuthUtils} from './utils/auth.utils';
 import {singleton} from 'tsyringe';
 import {Unauthorized} from "http-errors";
@@ -48,14 +47,13 @@ export class AuthMiddleware {
             console.error('Authentication error:', error);
             next(error);
         }
-    }
-    ;
+    };
 
     requireRoles = (roles: string[], adminOverride = false) => {
         return async (req: AuthRequest, res: Response, next: NextFunction) => {
             try {
                 if (!req.user?.roles) {
-                    throw new UnauthorizedError('No roles found');
+                    throw Unauthorized('No roles found');
                 }
 
                 const hasRequiredRole = req.user.roles.some(userRole =>
@@ -63,7 +61,7 @@ export class AuthMiddleware {
                 ) || (adminOverride && req.user.roles.includes(UserRole.ADMIN));
 
                 if (!hasRequiredRole) {
-                    throw new UnauthorizedError('Insufficient permissions');
+                    throw Unauthorized('Insufficient permissions');
                 }
 
                 next();

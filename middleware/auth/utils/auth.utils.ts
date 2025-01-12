@@ -1,9 +1,9 @@
 import jwt, {JwtPayload} from 'jsonwebtoken';
 import {IUserDocument, PasswordResetToken} from '../../../models/interfaces';
 import {RefreshTokenPayload, TokenPayload} from '../types/token.type';
-import {UnauthorizedError} from "../exceptions/unauthorized.error";
 import {v4 as uuidv4} from 'uuid';
 import {ImageConversionUtil} from "../../../services/util/image/image-conversion-util";
+import {Unauthorized} from "http-errors";
 
 
 export class AuthUtils {
@@ -65,7 +65,7 @@ export class AuthUtils {
             console.log('verify', verify);
             return verify;
         } catch (error) {
-            throw new UnauthorizedError('Invalid token');
+            throw Unauthorized('Invalid token');
         }
     }
 }
