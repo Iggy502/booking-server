@@ -79,13 +79,7 @@ export class PropertyService {
         return properties.map(property => this.mapToPropertyResponse(property));
     }
 
-    async getAllAvailableProperties(): Promise<IPropertyResponse[]> {
-        const properties = await Property.find({available: true});
-        return properties.map(property => this.mapToPropertyResponse(property));
-    }
-
     async verifyNoOverlappingBookings(propertyId: string, checkIn: Date, checkOut: Date): Promise<boolean> {
-
         if (!Property.exists({_id: propertyId, available: true})) {
             throw NotFound('Property not found or not available');
         }
